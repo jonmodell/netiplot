@@ -28,7 +28,7 @@ const SCALE_FACTOR = 0.5;
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 6;
 
-function panScaleReducer(state: { scale: any; pan?: any; destinationScale?: any; destinationPan?: any; panPerFrame?: any; }, action: { type: any; payload: { scale?: any; pan?: any; newScale?: any; bounds?: any; screen?: any; dn?: any; pos?: any; }; }) {
+function panScaleReducer(state: { scale: any; pan?: any; destinationScale?: any; destinationPan?: any; panPerFrame?: any; }, action: { type: string; payload: any; }) {
   switch (action.type) {
     case actionTypes.keyAction: {
       const a = action.payload;
