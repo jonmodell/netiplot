@@ -130,8 +130,9 @@ export interface RevisNodeDefinition {
   type?: string;
   x?: number;
   y?: number;
-  style: {
-    border: string;
+  style?: {
+    border?: string;
+    [key: string]: any;
   };
   [key: string]: any;
 }
@@ -167,7 +168,7 @@ export interface RevisNetworkBaseProps {
   className?: string;
   customControls?: (data: CustomControlsData) => React.ReactNode;
   debug?: boolean;
-  graph: { nodes: [any]; edges: [any] };
+  graph: RevisGraph;
   identifier?: string;
   images?: Object;
   layouter?: (data: LayouterData, options: any, screen: any) => void;
@@ -175,7 +176,7 @@ export interface RevisNetworkBaseProps {
   onMouse?: (type: string, items?: any, event?: any, network?: any) => void;
   options?: RevisOptions;
   shapeDrawingFunction?: (context: any, definition: any, size: number) => void;
-  shapes?: [any];
+  shapes?: RevisShapeDefinition[];
   shouldRunLayouter?: (prev: any, next: any) => boolean;
 }
 
@@ -288,7 +289,7 @@ export interface RendererOptions{
 
 export interface RendererProps {
   className?: string;
-  customControls: React.ReactNode;
+  customControls?: ((data: CustomControlsData) => React.ReactNode) | null;
   nodes: Map<string, RevisNode>;
   edges: Map<string, RevisEdge>;
   shapes: RevisShapeDefinition[];

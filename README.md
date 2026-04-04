@@ -1,5 +1,5 @@
-# revis-retwork-ts
-Typscript port of @sciencelogic/revis-network - a react based canvas networking visualization pacakage
+# revis-network-ts
+A react based canvas networking visualization pacakage
 
 The basic premis of this component is that you know your data, and can choose how you want it rendered.  Out of the box, revis supports dots with labels in a hierarchical display.  However, it is simple to supply your own node, edge and shape data, and your own layout functions to place them.  
 

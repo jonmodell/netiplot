@@ -1,6 +1,6 @@
 {
   "name": "revis-network-ts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "React network visualization library",
   "author": "Jon Modell<jon@jonmodell.com>",
   "license": "MIT",
@@ -17,67 +17,47 @@
     "Graph",
     "Library"
   ],
+  "type": "module",
   "main": "lib/index.js",
   "module": "lib/index.esm.js",
   "types": "lib/index.d.ts",
-  "resolutions": {
-    "ansi-regex": "^5.0.1",
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.1",
-    "trim": "^0.0.3",
-    "chokidar": "^3.5.2",
-    "glob-parent": "^5.1.2",
-    "highlight.js": "^10.7.3",
-    "immer": "^9.0.6",
-    "browserslist": "^4.16.5",
-    "set-value": "^4.0.1"
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.esm.js",
+      "require": "./lib/index.js"
+    }
   },
+  "files": [
+    "lib",
+    "README.md"
+  ],
   "peerDependencies": {
-    "react": "^16.8.0  || ^17.0.0",
-    "react-dom": "^16.8.0  || ^17.0.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@rollup/plugin-commonjs": "^21.0.1",
-    "@rollup/plugin-node-resolve": "^13.0.6",
-    "@storybook/addon-actions": "6.3.12",
-    "@storybook/addon-knobs": "6.2.9",
-    "@storybook/react": "6.3.12",
-    "@types/lodash": "^4.14.176",
-    "@types/react": "^17.0.33",
-    "@types/styled-components": "^5.1.15",
-    "@types/uuid": "^8.3.1",
-    "babel-loader": "^8.2.3",
-    "commitizen": "^4.2.4",
-    "d3-force": "^3.0.0",
-    "dagre": "^0.8.5",
-    "npm-force-resolutions": "0.0.10",
-    "postcss": "^8.3.11",
-    "react": "16.8.0",
-    "react-dom": "16.8.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.59.0",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-postcss": "^4.0.1",
-    "rollup-plugin-typescript2": "^0.30.0",
-    "seedrandom": "^3.0.5",
-    "standard-version": "^9.3.2",
-    "typescript": "^4.4.4"
+    "@types/lodash": "^4.17.24",
+    "@types/react": "^18.2.0",
+    "@types/styled-components": "^5.1.36",
+    "@vitejs/plugin-react": "^4.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.4.0",
+    "vite": "^6.4.1",
+    "vite-plugin-dts": "^3.9.0"
   },
   "dependencies": {
     "lodash": "^4.17.21",
     "ramda": "^0.27.1",
-    "react-resize-detector": "^6.7.6",
+    "react-resize-detector": "^11.0.0",
     "styled-components": "^5.3.3",
     "uniqid": "^5.4.0"
   },
   "scripts": {
-    "build": "rollup -c",
-    "build-storybook": "build-storybook",
-    "clean": "rimraf lib && rimraf node_modules",
-    "commit": "cz",
-    "preinstall": "npx npm-force-resolutions",
-    "release": "standard-version",
-    "storybook": "start-storybook -p 6006",
+    "build": "vite build",
+    "clean": "rm -rf lib node_modules",
+    "dev": "npm --prefix demo run dev",
     "test": "jest",
     "test:watch": "jest --watch"
   }

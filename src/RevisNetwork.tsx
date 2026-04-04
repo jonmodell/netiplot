@@ -1,4 +1,3 @@
-/* @flow */
 /* eslint-disable no-param-reassign, no-unused-expressions, no-undef */
 import React, {
   useState,
@@ -463,7 +462,8 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
     }
     // @ts-ignore
     baseCanvas.current = t;
-    setScreenState(screen());
+    // Defer state update to avoid setting state on a parent during a child's render/layout phase
+    queueMicrotask(() => setScreenState(screen()));
     return true;
   };
 
@@ -496,7 +496,7 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
   };
 
   // KEY ACTIONS ----------------------------------------
-  const handleKeyAction = (a: never) => {
+  const handleKeyAction = (a: any) => {
     // @ts-ignore
     panScaleDispatch({ type: "keyAction", payload: a });
   };

@@ -1,10 +1,12 @@
-import React, { useRef, useLayoutEffect, Fragment } from 'react';
-import ReactResizeDetector from 'react-resize-detector';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import { useResizeDetector } from 'react-resize-detector';
 
 const ActionLayer = (props: { handlers?: any; handleMouse?: any; handleMouseWheel?: any; handleKey?: any; }) => {
   const { handlers, handleMouse, handleMouseWheel, handleKey } = props;
 
-  const actionRef = React.useRef<HTMLCanvasElement>(null);
+  const actionRef = useRef<HTMLCanvasElement>(null);
+  const handleMouseWheelRef = useRef(handleMouseWheel);
+  handleMouseWheelRef.current = handleMouseWheel;
 
   const onResize = () => {
     if (!actionRef?.current) {
@@ -17,32 +19,44 @@ const ActionLayer = (props: { handlers?: any; handleMouse?: any; handleMouseWhee
     return true;
   };
 
+  useResizeDetector({
+    targetRef: actionRef,
+    onResize,
+  });
+
   // send the actual screen size on the first render only
   useLayoutEffect(() => {
     onResize();
   }, []);
 
+  // Attach wheel listener as non-passive so we can preventDefault to capture
+  // pinch-to-zoom gestures (trackpad/touch) instead of letting the browser zoom
+  useEffect(() => {
+    const canvas = actionRef.current;
+    if (!canvas) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      handleMouseWheelRef.current && handleMouseWheelRef.current(e);
+    };
+
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', onWheel);
+  }, []);
+
   return (
-    <>
-      <ReactResizeDetector
-        handleWidth
-        handleHeight
-        onResize={() => onResize()}
-      />
-      <canvas
-        ref={actionRef}
-        tabIndex={0}
-        className='action-canvas'
-        onWheel={handleMouseWheel}
-        onMouseDown={handleMouse}
-        onMouseMove={handleMouse}
-        onDoubleClick={handleMouse}
-        onMouseUp={handleMouse}
-        onMouseLeave={handleMouse}
-        onKeyDown={handleKey}
-        onKeyUp={handleKey}
-      />
-    </>
+    <canvas
+      ref={actionRef}
+      tabIndex={0}
+      className='action-canvas'
+      onMouseDown={handleMouse}
+      onMouseMove={handleMouse}
+      onDoubleClick={handleMouse}
+      onMouseUp={handleMouse}
+      onMouseLeave={handleMouse}
+      onKeyDown={handleKey}
+      onKeyUp={handleKey}
+    />
   );
 };
 
