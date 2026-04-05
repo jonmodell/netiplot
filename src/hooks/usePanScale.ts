@@ -1,6 +1,7 @@
 import { useReducer } from 'react';
+import { PanScaleState, Bounds, RevisScreen } from '../types';
 
-export const initialPanScaleState = {
+export const initialPanScaleState: PanScaleState = {
   destinationScale: null,
   destinationPan: null,
   scale: 0.1,
@@ -8,29 +9,27 @@ export const initialPanScaleState = {
   panPerFrame: null,
 };
 
-const actionTypes = {
-  destination: 'destination',
-  edgePan: 'edgePan',
-  framePan: 'framePan',
-  keyAction: 'keyAction',
-  pan: 'pan',
-  set: 'set',
-  zoomIn: 'zoomIn',
-  zoomOut: 'zoomOut',
-  zoomPanimate: 'zoomPanimate',
-  zoomSelection: 'zoomSelection',
-  zoomToFit: 'zoomToFit',
-  zoomToPoint: 'zoomToPoint',
-};
+export type PanScaleAction =
+  | { type: 'destination'; payload: { pan: { x: number; y: number }; scale: number } }
+  | { type: 'edgePan' }
+  | { type: 'framePan'; payload: { x: number; y: number } | null }
+  | { type: 'keyAction'; payload: string }
+  | { type: 'pan'; payload: { x: number; y: number } }
+  | { type: 'set'; payload: PanScaleState }
+  | { type: 'zoomIn'; payload: { screen: RevisScreen; bounds: Bounds } }
+  | { type: 'zoomOut'; payload: { screen: RevisScreen; newScale: number; bounds: Bounds } }
+  | { type: 'zoomPanimate' }
+  | { type: 'zoomSelection'; payload: { screen: RevisScreen; dn: { x: number; y: number } } }
+  | { type: 'zoomToPoint'; payload: { pos: { x: number; y: number }; screen: RevisScreen } };
 
 const KEY_PAN_FACTOR = 10;
 const SCALE_FACTOR = 0.5;
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 6;
 
-function panScaleReducer(state: { scale: any; pan?: any; destinationScale?: any; destinationPan?: any; panPerFrame?: any; }, action: { type: string; payload: any; }) {
+function panScaleReducer(state: PanScaleState, action: PanScaleAction): PanScaleState {
   switch (action.type) {
-    case actionTypes.keyAction: {
+    case 'keyAction': {
       const a = action.payload;
       let { pan, scale } = { ...state };
       switch (a) {
@@ -70,33 +69,33 @@ function panScaleReducer(state: { scale: any; pan?: any; destinationScale?: any;
 
       return { ...state, pan, scale };
     }
-    case actionTypes.set: {
+    case 'set': {
       return action.payload;
     }
-    case actionTypes.destination: {
+    case 'destination': {
       return {
         ...state,
         destinationScale: action.payload.scale,
         destinationPan: action.payload.pan,
       };
     }
-    case actionTypes.pan: {
+    case 'pan': {
       return {
         ...state,
         pan: action.payload,
       };
     }
-    case actionTypes.framePan: {
+    case 'framePan': {
       return {
         ...state,
         panPerFrame: action.payload,
       };
     }
-    case actionTypes.zoomPanimate: {
+    case 'zoomPanimate': {
       const { pan, scale, destinationScale, destinationPan } = state;
+      if (!destinationScale || !destinationPan || !pan) return { ...state };
       const scaleDiff = destinationScale - scale;
-      if(!destinationPan || !pan) return {...state}
-      
+
       const xDiff = destinationPan.x - pan.x;
       const yDiff = destinationPan.y - pan.y;
       if (
@@ -123,9 +122,9 @@ function panScaleReducer(state: { scale: any; pan?: any; destinationScale?: any;
         destinationPan: null,
       };
     }
-    case actionTypes.edgePan: {
-      // panning at the edges of the screen changes pan and dragged nodes cooridiates
+    case 'edgePan': {
       const { scale, panPerFrame, pan } = state;
+      if (!panPerFrame) return state;
       const pn = { ...pan };
       pn.x += panPerFrame.x * scale;
       pn.y += panPerFrame.y * scale;
@@ -135,64 +134,64 @@ function panScaleReducer(state: { scale: any; pan?: any; destinationScale?: any;
         pan: pn,
       };
     }
-    case actionTypes.zoomOut: {
+    case 'zoomOut': {
       const { newScale, bounds, screen } = action.payload;
       const nsf = Math.max(
         state.scale - SCALE_FACTOR,
         Math.min(MIN_ZOOM, newScale),
       );
-      const x = screen.width / 2 - (bounds.width / 2 + bounds.minX) * nsf;
-      const y = screen.height / 2 - (bounds.height / 2 + bounds.minY) * nsf;
+      const x = (screen.width as number) / 2 - ((bounds.width || 0) / 2 + bounds.minX) * nsf;
+      const y = (screen.height as number) / 2 - ((bounds.height || 0) / 2 + bounds.minY) * nsf;
       return {
         ...state,
         destinationScale: nsf,
         destinationPan: { x, y },
       };
     }
-    case actionTypes.zoomIn: {
+    case 'zoomIn': {
       const { bounds, screen } = action.payload;
       const nsf = Math.min(state.scale + SCALE_FACTOR, MAX_ZOOM);
-      const x = screen.width / 2 - (bounds.width / 2 + bounds.minX) * nsf;
-      const y = screen.height / 2 - (bounds.height / 2 + bounds.minY) * nsf;
+      const x = (screen.width as number) / 2 - ((bounds.width || 0) / 2 + bounds.minX) * nsf;
+      const y = (screen.height as number) / 2 - ((bounds.height || 0) / 2 + bounds.minY) * nsf;
       return {
         ...state,
         destinationScale: nsf,
         destinationPan: { x, y },
       };
     }
-    case actionTypes.zoomSelection: {
+    case 'zoomSelection': {
       const { dn, screen } = action.payload;
       return {
         ...state,
         destinationScale: 2,
         destinationPan: {
-          x: screen.width / 2 - dn.x * 2,
-          y: screen.height / 2 - dn.y * 2,
+          x: (screen.width as number) / 2 - dn.x * 2,
+          y: (screen.height as number) / 2 - dn.y * 2,
         },
       };
     }
 
-    case actionTypes.zoomToPoint: {
+    case 'zoomToPoint': {
       const { pos, screen } = action.payload;
       const nsf = Math.min(state.scale + SCALE_FACTOR, MAX_ZOOM);
       return {
         ...state,
         destinationScale: nsf,
         destinationPan: {
-          x: (screen.width / 2 - pos.x) * nsf,
-          y: (screen.height / 2 - pos.y) * nsf,
+          x: ((screen.width as number) / 2 - pos.x) * nsf,
+          y: ((screen.height as number) / 2 - pos.y) * nsf,
         },
       };
     }
 
     default: {
-      throw new Error(`Unhandled type: ${action.type}`);
+      const _exhaustive: never = action;
+      throw new Error(`Unhandled type: ${(_exhaustive as PanScaleAction).type}`);
     }
   }
 }
 
 function usePanScale({ reducer = panScaleReducer } = {}) {
-  // @ts-ignore
   const [psState, dispatch] = useReducer(reducer, initialPanScaleState);
   return { psState, panScaleDispatch: dispatch };
 }

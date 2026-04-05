@@ -1,6 +1,6 @@
 import { RevisEdge, RevisNode } from "../components";
 
-export const compareByParentChild = (a: { isParent: any; isChild: any; mass: number; }, b: { isParent: any; isChild: any; mass: number; }) => {
+export const compareByParentChild = (a: any, b: any) => {
   const aVal = a.isParent && !a.isChild ? 1 : 0;
   const bVal = b.isParent && !b.isChild ? 1 : 0;
   return bVal - aVal || b.mass - a.mass;
@@ -12,23 +12,23 @@ export const compareByMass = (a: { mass: number; }, b: { mass: number; }) => {
   return bVal - aVal;
 };
 
-export const compareByOrder = (a: { parent: { order: number; }; width: number; mass: number; }, b: { parent: { order: number; }; width: number; mass: number; }) => {
+export const compareByOrder = (a: any, b: any) => {
   const aVal = a?.parent?.order || 0;
   const bVal = b?.parent?.order || 0;
   return aVal - bVal || b.width - a.width || b.mass - a.mass;
 };
 
-export const assignEdgeParentChild = (edge: { end: { isChild: boolean; }; start: { isParent: boolean; }; }) => {
+export const assignEdgeParentChild = (edge: any) => {
   edge.end.isChild = true;
   edge.start.isParent = true;
 };
 
 // Applies width to node and all its children
-export const getWidth = (node: { children: any[]; width: number | undefined; }) => {
+export const getWidth = (node: any): number => {
   if (node) {
     const w = Math.max(
       1,
-      node.children.reduce((acc, c) => acc + getWidth(c), 0),
+      node.children.reduce((acc: number, c: any) => acc + getWidth(c), 0),
     );
     node.width = w;
     return w;
@@ -39,15 +39,14 @@ export const getWidth = (node: { children: any[]; width: number | undefined; }) 
 // Crawls through a node and all its children. nodeCallback is called for each node.
 export const crawl = (
   props: { data: { edges: any; }; options: { isDirected: any; }; },
-  nodeCallback: (a?: any, b?: any) => void  = () => {},
-  childCondition = (child: { rank: null; }) => child.rank === null,
-) => (node: { id?: any; children: any; width: number | undefined; }) => {
+  nodeCallback: (a?: any, b?: any) => void = () => {},
+  childCondition = (child: any) => child.rank === null,
+) => (node: any) => {
   const { edges } = props.data;
   const { isDirected } = props.options;
-  edges.forEach((edge: { definition: { to: { toString: () => any; }; from: { toString: () => any; }; }; from: any; start: any; end: any; }) => {
+  edges.forEach((edge: any) => {
     const nid = node.id.toString();
     let child;
-    // Only do this if non-directed
     if (
       !isDirected &&
       edge.definition.to.toString() === nid &&
@@ -68,8 +67,8 @@ export const crawl = (
     }
   });
 
-  node.children.sort((a: { mass: number; }, b: { mass: number; }) => a.mass - b.mass);
-  node.children.forEach((child: { id?: any; children: any; width: number | undefined; }) => {
+  node.children.sort((a: any, b: any) => a.mass - b.mass);
+  node.children.forEach((child: any) => {
     crawl(props, nodeCallback, childCondition)(child);
   });
 
@@ -78,32 +77,23 @@ export const crawl = (
 
 /**
  * ORDERING
- * Looks through each level and order the members so they are grouped under parents, if
- * nodes have 2 parents, move those parents closer to each other.
+ * Looks through each level and order the members so they are grouped under parents.
  * Requires props.extras.maxRank
- *
- * @return {void} use with tap()
  */
 export const orderNodes = (
-  getNodeRank = (node: { rank: any; }) => node.rank,
-  // @ts-ignore
-  getMaxRank = ({ extras: { maxRank } }) => maxRank,
+  getNodeRank = (node: any) => node.rank,
+  getMaxRank = ({ extras: { maxRank } }: any) => maxRank,
 ) => (props: { data?: any; extras?: any; }) => {
   const { nodes } = props.data;
-  // @ts-ignore
   const maxRank = getMaxRank(props);
   for (let i = 0; i < maxRank + 1; i++) {
-    const sameRankNodes = nodes.filter((node: { rank: any; }) => getNodeRank(node) === i);
+    const sameRankNodes = nodes.filter((node: any) => getNodeRank(node) === i);
     sameRankNodes.sort(compareByOrder);
 
     let count = 0;
-    // @ts-ignore
-    let oldParent = null;
+    let oldParent: any = null;
 
-    // @ts-ignore
-    sameRankNodes.forEach((node) => {
-      // every time there is a new parent, we reset the count
-      // @ts-ignore
+    sameRankNodes.forEach((node: any) => {
       if (node.parent && node.parent !== oldParent) {
         count = 0;
       }
@@ -123,26 +113,20 @@ export const orderNodes = (
 
   // 2nd pass
   for (let i = 0; i < maxRank + 1; i++) {
-    const sameRankNodes = nodes.filter((node: { rank: any; }) => getNodeRank(node) === i);
-    sameRankNodes.sort((a: { order: any; }, b: { order: any; }) => {
-      const aVal = a.order;
-      const bVal = b.order;
-      return aVal - bVal;
+    const sameRankNodes = nodes.filter((node: any) => getNodeRank(node) === i);
+    sameRankNodes.sort((a: any, b: any) => {
+      return a.order - b.order;
     });
 
-    // @ts-ignore
-    let oldOrder = null;
+    let oldOrder: any = null;
     let shift = 0;
 
-    // @ts-ignore
-    sameRankNodes.forEach((node) => {
+    sameRankNodes.forEach((node: any) => {
       node.order += shift;
-      // @ts-ignore
       if (node.order === oldOrder) {
         shift++;
         node.order = node.order + shift;
-        // @ts-ignore
-        node.children.forEach((child) => {
+        node.children.forEach((child: any) => {
           if (getNodeRank(child) > getNodeRank(node)) {
             child.order = child.order + shift;
           }
@@ -194,17 +178,13 @@ export const scaleCoordsByScreenSize = (coords: { x: any; y: any; }[], screen: {
   const { width: screenWidth, height: screenHeight } = screen;
   const { minX, minY, maxX, maxY } = getBounds(coords);
 
-  // Determine width and height by getting distance between mins and maxes
   const layoutWidth = maxX - minX || 1;
   const layoutHeight = maxY - minY || 1;
 
-  // Determine spacing by getting multiplier to match layout to screen
   const xSpacing = screenWidth / layoutWidth;
   const ySpacing = screenHeight / layoutHeight;
 
-  // Make sure x spacing is at least 50 to prevent overlap (labels too) when zoomed in
   const adjustedXSpacing = 100;
-  // Scale y spacing based on adjusted x spacing
   const adjustedYSpacing = Math.max(
     Math.min((ySpacing * adjustedXSpacing) / xSpacing, 500),
     100,
@@ -213,13 +193,12 @@ export const scaleCoordsByScreenSize = (coords: { x: any; y: any; }[], screen: {
   return scaleCoords(adjustedXSpacing, adjustedYSpacing);
 };
 
-export const getCoordsKeyValuePairs = (coords: any[]) => coords.map((c) => [c.id, c]);
+export const getCoordsKeyValuePairs = (coords: any[]): [string, any][] => coords.map((c) => [c.id, c]);
 
-// @ts-ignore
-export const shouldAssignCoords = ({ x, y, fixed }) =>
+export const shouldAssignCoords = ({ x, y, fixed }: any) =>
   falsyNonNumeric(x) || falsyNonNumeric(y) || falsyNonNumeric(fixed);
 
-export const assignCoords = (getCoords: { ({ id }: { id: any; }): any; (arg0: any): { x: any; y: any; }; }) => (node: { x: number | undefined; y: number |undefined; destination: { x: any; y: any; }; }) => {
+export const assignCoords = (getCoords: (node: any) => any) => (node: any) => {
   const { x, y } = getCoords(node);
   if (node.x !== undefined || node.y !== undefined) {
     node.destination = { x, y };

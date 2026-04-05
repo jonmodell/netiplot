@@ -7,8 +7,7 @@ import React, {
   memo,
   useMemo,
 } from "react";
-import uniqid from 'uniqid';
-import { isEqual, merge } from "lodash";
+import { deepEqual, deepMerge } from "./util";
 import {
   getBounds,
   getBoundsScale,
@@ -32,9 +31,26 @@ import { Renderer } from "./Renderer";
 import { RevisNode, RevisEdge } from "./components";
 import { usePanScale, useInteraction } from "./hooks";
 
-import { RevisNetworkBaseProps, RevisScreen, RevisShapeDefinition, RevisGraph } from "./types";
+import {
+  RevisNetworkProps,
+  RevisScreen,
+  RevisShapeDefinition,
+  RevisGraph,
+  RevisNodeDefinition,
+  RevisEdgeDefinition,
+  HoverState,
+  InteractionState,
+  Bounds,
+  RevisOptions,
+} from "./types";
 
-const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
+interface MousePayload {
+  pos: { x: number; y: number };
+  ctrlClick: boolean;
+  e: MouseEvent;
+}
+
+const RevisNetworkBase = (props: RevisNetworkProps) => {
   const {
     className,
     callbackFn,
@@ -55,29 +71,27 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
   const { psState, panScaleDispatch } = usePanScale();
   const { interactionState, interactionDispatch } = useInteraction();
 
-  const [keyActionState, setKeyActionState] = useState(null);
-  const [hoverState, setHoverState] = useState<{item: any, itemType: string | null}>({
+  const [keyActionState, setKeyActionState] = useState<string | null>(null);
+  const [hoverState, setHoverState] = useState<HoverState>({
     item: null,
     itemType: null,
   });
-  const [rolloverState, setRolloverState] = useState(null);
-  const [optionState, setOptionState] = useState(
-    merge({}, defaultOptions, options || {})
+  const [rolloverState, setRolloverState] = useState<RevisNode | RevisEdge | null>(null);
+  const [optionState, setOptionState] = useState<RevisOptions>(
+    deepMerge({}, defaultOptions, options || {})
   );
 
-  const hoverTimer: React.RefObject<any> = useRef(null);
-  const uid = useRef(identifier || uniqid('revis-'));
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const uid = useRef(identifier || 'revis-' + Math.random().toString(36).slice(2));
 
   const nodes = useRef<Map<string, RevisNode>>(
     new Map()
   );
   const edges = useRef<Map<string, RevisEdge>>(new Map());
   const shapesRef = useRef<RevisShapeDefinition[]>();
-  const lastLayouterResult = useRef(props.layouter);
+  const lastLayouterResult = useRef<ReturnType<typeof layouter> | null>(null);
 
-  const baseCanvas: React.RefObject<HTMLCanvasElement> = useRef<HTMLCanvasElement | null>(
-    null
-  );
+  const baseCanvas = useRef<HTMLCanvasElement | null>(null);
   const [screenState, setScreenState] = useState<RevisScreen>({
     width: 0,
     height: 0,
@@ -85,11 +99,7 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
     boundingRect: null,
   });
 
-  /**
-   *
-   * @returns RevisScreen
-   */
-  const screen = () => ({
+  const screen = (): RevisScreen => ({
     width: baseCanvas.current?.clientWidth,
     height: baseCanvas.current?.clientHeight,
     ratio: window.devicePixelRatio || 1,
@@ -97,15 +107,14 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
   });
 
   const bounds = useMemo(
-    // @ts-ignore
-    () => getBounds(Array.from(nodes.current) || [], shapes),
+    () => getBounds(Array.from(nodes.current.values()), shapes),
     [nodes, edges, shapes, getBounds]
   );
 
   const getCamera = useCallback(() => ({ ...psState }), [psState]);
 
   const clearHover = () => {
-    clearTimeout(hoverTimer.current);
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
     if (hoverState.item) {
       setHoverState({
         item: null,
@@ -114,35 +123,27 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
     }
   };
 
-  const setShowHover = (item: any, itemType: string, pos: { x: any; y: any; }) => {
+  const setShowHover = (item: RevisNodeDefinition | RevisEdgeDefinition, itemType: string, pos: { x: number; y: number }) => {
     const delay = optionState?.hover?.delay || 750;
     const popupPosition = getHoverPos(pos, screen(), psState, optionState);
-    clearTimeout(hoverTimer.current);
-    // @ts-ignore
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
     hoverTimer.current = setTimeout(() => {
       setHoverState({
         ...hoverState,
         item,
         itemType,
-        // @ts-ignore
         popupPosition,
       });
     }, delay);
   };
 
-  const processShapeEdit = (type: string, payload: { pos: any; ctrlClick: any; e: any; }) => {
+  const processShapeEdit = (type: string, payload: MousePayload) => {
     const om = onMouse;
-    // ctrl click should constrain height and width
-    // node should not be negatively sized
-    // node should not be allowed to become too small
     const { pos, ctrlClick, e } = payload;
     const iSt = interactionState;
     switch (type === "dblclick" ? "dblclick" : type.substr(5)) {
       case "down": {
-        // if a shape is already selected, check for handle clicks
-        // @ts-ignore
         if (iSt.shape) {
-          // @ts-ignore
           const handle = getHandleAtPos(iSt.shape, pos, psState.scale);
           if (handle) {
             interactionDispatch({ type: "handleDown", payload: handle });
@@ -150,30 +151,28 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
           }
         }
 
-        // check for shape click and set edit shape id
         const shape = getShapeAtPos(shapes, pos);
         if (shape) {
           om && om("shapeClick", shape, e);
-          // @ts-ignore
-          shapes.splice(shapes.indexOf(shape), 1);
-          // @ts-ignore
-          shapes.push(shape);
+          if (shapes) {
+            const idx = shapes.indexOf(shape);
+            if (idx !== -1) {
+              shapes.splice(idx, 1);
+              shapes.push(shape);
+            }
+          }
           interactionDispatch({ type: "shapeDown", payload: shape });
-          // set interaction state to shape dragging
         } else {
           om && om("backgroundClick");
-          interactionDispatch({ type: "pan" }); // pan
+          interactionDispatch({ type: "pan" });
         }
         break;
       }
       case "up": {
-        // @ts-ignore
         if (iSt.shape && iSt.mouseMoved) {
-          // @ts-ignore
-          om && om("shapeUpdate", [...shapes], e);
+          om && om("shapeUpdate", shapes ? [...shapes] : [], e);
         }
         interactionDispatch({ type: "shapeUp" });
-        // @ts-ignore
         panScaleDispatch({
           type: "framePan",
           payload: null,
@@ -183,11 +182,9 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
 
       case "move": {
         if (iSt.action === "pan") {
-          // PANNING
           const newPan = { ...psState.pan };
           newPan.x = Number(newPan.x) + e.movementX;
           newPan.y = Number(newPan.y) + e.movementY;
-          // @ts-ignore
           panScaleDispatch({
             type: "pan",
             payload: newPan,
@@ -195,22 +192,15 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
           break;
         }
 
-        // only allow shapes to drag or resize if they don't have the noEdit flag
-        // @ts-ignore
-        if (iSt.action === "shapeDrag" && iSt.shape.noEdit !== true) {
-          // @ts-ignore
+        if (iSt.action === "shapeDrag" && iSt.shape && iSt.shape.noEdit !== true) {
           iSt.shape.x = Number(iSt.shape.x) + e.movementX / psState.scale;
-          // @ts-ignore
           iSt.shape.y = Number(iSt.shape.y) + e.movementY / psState.scale;
           interactionDispatch({ type: "shapeMove" });
         }
 
-        // @ts-ignore
-        if (iSt.action === "handleDrag" && iSt.shape.noEdit !== true) {
+        if (iSt.action === "handleDrag" && iSt.shape && iSt.shape.noEdit !== true && iSt.shapeHandle) {
           const changes = setShapeByHandleDrag(
-            // @ts-ignore
             iSt.shape,
-            // @ts-ignore
             iSt.shapeHandle,
             {
               x: e.movementX / psState.scale,
@@ -218,21 +208,24 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
             },
             ctrlClick
           );
-          // @ts-ignore
           iSt.shape.x = changes.x;
-          // @ts-ignore
           iSt.shape.y = changes.y;
-          // @ts-ignore
           iSt.shape.width = changes.width;
-          // @ts-ignore
           iSt.shape.height = changes.height;
           interactionDispatch({ type: "handleMove" });
         }
         break;
       }
 
+      case "dblclick": {
+        const shape = getShapeAtPos(shapes, pos);
+        if (shape) {
+          om && om("shapeDblClick", shape, e);
+        }
+        break;
+      }
+
       case "leave": {
-        // console.log('leave');
         break;
       }
       default:
@@ -240,21 +233,15 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
     }
   };
 
-  /**
-   * if graph interactions are enabled, process those first and stop (return true).
-   * then, if shape interactions are enabled, process them
-   */
-  const processMouseAction = (type: string, payload: { pos?: any; ctrlClick?: any; e: any; }) => {
+  const processMouseAction = (type: string, payload: MousePayload) => {
     const iOps = optionState.interaction;
     const om = props.onMouse;
-    // @ts-ignore
-    if (iOps.allowGraphInteraction) {
+    if (iOps?.allowGraphInteraction) {
       const iSt = interactionState;
       switch (type === "dblclick" ? "dblclick" : type.substr(5)) {
         case "down": {
           const { pos, ctrlClick, e } = payload;
-          // @ts-ignore
-          const draggedNodes = new Set(ctrlClick ? iSt.draggedNodes : []);
+          const draggedNodes = new Set<RevisNodeDefinition>(ctrlClick ? iSt.draggedNodes : []);
           const n = getNodeAtPosition(nodes.current, pos);
           const ed = getEdgeAtPosition(
             edges.current,
@@ -262,45 +249,37 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
             optionState.edges
           );
           if (n) {
-            // drag if we clicked on a node
-            om && om("nodeClick", n, e);
-            draggedNodes.add(n);
+            om && om("nodeClick", n.definition, e);
+            draggedNodes.add(n.definition);
             interactionDispatch({
               type: "addToDrag",
               payload: Array.from(draggedNodes),
             });
           } else if (ed) {
-            om && om("edgeClick", ed, e);
+            om && om("edgeClick", ed.definition, e);
             interactionDispatch({
               type: "edgeDown",
             });
           } else {
-            interactionDispatch({ type: "pan" }); // pan
+            interactionDispatch({ type: "pan" });
           }
           clearHover();
           break;
         }
         case "up": {
           const { e } = payload;
-          // only registrer background  click if we were not dragging
           if (
-            // @ts-ignore
             !iSt.draggedNodes.length &&
-            // @ts-ignore
             !iSt.mouseMoved &&
             iSt.action !== "edgeDown"
           ) {
             om && om("backgroundClick", null, e);
           }
 
-          // if there were nodes dragging and there is a handler, alert the handler one more time
-          // @ts-ignore
           if (iSt.draggedNodes.length && iSt.mouseMoved && props.onMouse) {
-            // @ts-ignore
             om && om("nodesDragged", iSt.draggedNodes, e);
           }
-          interactionDispatch({ type: "releaseDrag" }); // release dragging
-          // @ts-ignore
+          interactionDispatch({ type: "releaseDrag" });
           panScaleDispatch({
             type: "framePan",
             payload: null,
@@ -310,20 +289,15 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
 
         case "move": {
           const { pos, e } = payload;
-          // @ts-ignore
           if (iSt.action === "drag" && iSt.draggedNodes.length > 0) {
-            // DRAGGING
-            // this.clearHover();
-            // @ts-ignore
             const lastNodeAdded = iSt.draggedNodes[iSt.draggedNodes.length - 1];
             const delta = {
               x: pos.x - Number(lastNodeAdded.x),
               y: pos.y - Number(lastNodeAdded.y),
             };
-            // @ts-ignore
-            iSt.draggedNodes.forEach((n) => {
-              n.x += delta.x;
-              n.y += delta.y;
+            iSt.draggedNodes.forEach((n: RevisNodeDefinition) => {
+              n.x = (n.x || 0) + delta.x;
+              n.y = (n.y || 0) + delta.y;
               n.fixed = true;
             });
 
@@ -331,29 +305,25 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
             interactionDispatch({
               type: "mouseMoved",
             });
-            // @ts-ignore
             panScaleDispatch({
               type: "framePan",
               payload: sp,
             });
           } else if (iSt.action === "pan") {
-            // PANNING
             const newPan = { ...psState.pan };
             newPan.x = Number(newPan.x) + e.movementX;
             newPan.y = Number(newPan.y) + e.movementY;
-            // @ts-ignore
             panScaleDispatch({
               type: "pan",
               payload: newPan,
             });
           } else {
-            // HOVERING
             const hn = getNodeAtPosition(nodes.current, pos);
             setRolloverState(hn);
             if (hn) {
-              if (hn !== hoverState.item) {
+              if (hn.definition !== hoverState.item) {
                 const nPos = getNodeScreenPos(hn, psState);
-                setShowHover(hn, "node", nPos);
+                setShowHover(hn.definition, "node", nPos);
               }
             } else {
               const he = getEdgeAtPosition(
@@ -362,15 +332,13 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
                 optionState.edges
               );
               if (he) {
-                // HOVERING EDGES, since there were no nodes -------------------
                 setRolloverState(he);
-                if (he && he !== hoverState.item) {
+                if (he && he.definition !== hoverState.item) {
                   const ePos = { x: e.clientX, y: e.clientY };
-                  setShowHover(he, "edge", ePos);
+                  setShowHover(he.definition, "edge", ePos);
                 }
               } else {
-                // WE ARE HOVING OVER BLANK SPACE ------------------------------
-                clearTimeout(hoverTimer.current);
+                if (hoverTimer.current) clearTimeout(hoverTimer.current);
                 setRolloverState(null);
               }
             }
@@ -378,7 +346,6 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
           break;
         }
         case "leave": {
-          // @ts-ignore
           panScaleDispatch({
             type: "framePan",
             payload: null,
@@ -389,35 +356,32 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
           break;
         }
         case "dblclick": {
-          // check node collision
           const n = getNodeAtPosition(nodes.current, payload.pos);
           if (n) {
-            om && om("nodeDblClick", n, payload.e);
+            om && om("nodeDblClick", n.definition, payload.e);
             break;
           }
 
-          // check edge collision
           const edge = getEdgeAtPosition(
             edges.current,
             payload.pos,
             optionState.edges
           );
           if (edge) {
-            om && om("edgeDblClick", edge, payload.e);
+            om && om("edgeDblClick", edge.definition, payload.e);
             break;
           }
 
-          // nothing found so zoom to double click point
-          const newE = payload.e;
-          newE.deltaY = -150;
+          const syntheticWheelEvent = Object.create(payload.e, {
+            deltaY: { value: -150 },
+          }) as WheelEvent;
           const { pan, scale } = getPanScaleFromMouseWheel(
-            newE,
+            syntheticWheelEvent,
             psState,
             screen(),
             bounds,
             optionState
           );
-          // @ts-ignore
           panScaleDispatch({
             type: "destination",
             payload: {
@@ -434,35 +398,29 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
       }
       return true;
     }
-    // @ts-ignore
-    if (iOps.allowShapeInteraction) {
-      // @ts-ignore
+    if (iOps?.allowShapeInteraction) {
       processShapeEdit(type, payload);
     }
     return true;
   };
 
-  const handleMouseWheel = (e: MouseEvent) => {
+  const handleMouseWheel = (e: WheelEvent) => {
     const st = getPanScaleFromMouseWheel(
       e,
       psState,
       screen(),
-      // @ts-ignore
-      getBounds(nodes.current.values(), shapes, optionState),
+      getBounds(Array.from(nodes.current.values()), shapes),
       optionState
     );
-    // @ts-ignore
     panScaleDispatch({ type: "set", payload: st });
     if (e) e.stopPropagation();
   };
 
-  const resize = (t: any) => {
+  const resize = (t: HTMLCanvasElement | null) => {
     if (!t) {
       return false;
     }
-    // @ts-ignore
     baseCanvas.current = t;
-    // Defer state update to avoid setting state on a parent during a child's render/layout phase
     queueMicrotask(() => setScreenState(screen()));
     return true;
   };
@@ -472,18 +430,16 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
       return false;
     }
     e.preventDefault();
-    // @ts-ignore
-    e.target && e.target.focus();
+    (e.target as HTMLElement)?.focus();
     const pos = getMousePos(e, screen(), psState);
     const ctrlClick = e.ctrlKey || e.metaKey || e.shiftKey;
     processMouseAction(e.type, { pos, ctrlClick, e });
     return true;
   };
 
-  const handleZoomClick = (e: { preventDefault: () => any; }, level: any) => {
+  const handleZoomClick = (e: { preventDefault: () => void }, level: string) => {
     e && e.preventDefault();
-    // @ts-ignore
-    baseCanvas.current.focus();
+    (baseCanvas.current as HTMLElement)?.focus();
     zoomHandler(level);
   };
 
@@ -496,38 +452,34 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
   };
 
   // KEY ACTIONS ----------------------------------------
-  const handleKeyAction = (a: any) => {
-    // @ts-ignore
+  const handleKeyAction = (a: string) => {
     panScaleDispatch({ type: "keyAction", payload: a });
   };
 
   const zoomToFit = useCallback(() => {
     setTimeout(() => interactionDispatch({ type: "endLayout" }), 300);
-    // @ts-ignore
-    const b = getBounds(nodes.current.values(), shapes);
+    const b = getBounds(Array.from(nodes.current.values()), shapes);
     const padding = optionState?.cameraOptions?.fitAllPadding || 10;
     const v = getFitToScreen(b, screen(), padding, optionState);
-    // @ts-ignore
-    panScaleDispatch({ type: "destination", payload: v });
+    if (v) {
+      panScaleDispatch({ type: "destination", payload: v });
+    }
     return true;
   }, [nodes.current.values(), shapes]);
 
-  const zoomHandler = (level: any) => {
+  const zoomHandler = (level: string) => {
     const scr = screen();
-    // @ts-ignore
-    const bds = getBounds(nodes.current.values(), shapes);
+    const bds = getBounds(Array.from(nodes.current.values()), shapes);
     const newScale = getBoundsScale(scr.height, scr.width, bds, optionState);
-    let dn = null;
+    let dn: RevisNodeDefinition | null = null;
     switch (level) {
       case "in":
-        // @ts-ignore
         panScaleDispatch({
           type: "zoomIn",
           payload: { screen: scr, bounds: bds },
         });
         break;
       case "out":
-        // @ts-ignore
         panScaleDispatch({
           type: "zoomOut",
           payload: { screen: scr, newScale, bounds: bds },
@@ -537,13 +489,11 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
         zoomToFit();
         break;
       case "selection":
-        // @ts-ignore
-        dn = interactionState.draggedNodes[0];
+        dn = interactionState.draggedNodes[0] || null;
         if (dn) {
-          // @ts-ignore
           panScaleDispatch({
             type: "zoomSelection",
-            payload: { screen: scr, dn },
+            payload: { screen: scr, dn: { x: dn.x || 0, y: dn.y || 0 } },
           });
         }
         break;
@@ -555,20 +505,17 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
   };
 
   const edgePan = () => {
-    // panning at the edges of the screen changes pan and dragged nodes cooridiates
     const { scale, panPerFrame, pan } = psState;
+    if (!panPerFrame) return;
     const pn = { ...pan };
     pn.x += panPerFrame.x * scale;
     pn.y += panPerFrame.y * scale;
 
-    // drag the nodes directly
-    // @ts-ignore
-    interactionState.draggedNodes.forEach((n) => {
-      n.x -= panPerFrame.x;
-      n.y -= panPerFrame.y;
+    interactionState.draggedNodes.forEach((n: RevisNodeDefinition) => {
+      n.x = (n.x || 0) - panPerFrame.x;
+      n.y = (n.y || 0) - panPerFrame.y;
     });
 
-    // @ts-ignore
     panScaleDispatch({
       type: "pan",
       payload: pn,
@@ -591,14 +538,13 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
   };
 
   const zoomPanimate = () => {
-    // @ts-ignore
     panScaleDispatch({ type: "zoomPanimate" });
   };
 
-  const handlers = (type: any, payload: any) => {
+  const handlers = (type: string, payload?: HTMLCanvasElement | null) => {
     switch (type) {
       case "resize":
-        resize(payload);
+        resize(payload || null);
         break;
 
       case "tick":
@@ -614,11 +560,9 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
   const runLayout = useCallback(() => {
     interactionDispatch({ type: "runLayout" });
     if (!nodes.current) return false;
-    // @ts-ignore
-    if (lastLayouterResult?.current?.stop);
-    // @ts-ignore
-    lastLayouterResult?.current?.stop && lastLayouterResult.current.stop();
-    // @ts-ignore
+    if (lastLayouterResult?.current?.stop) {
+      lastLayouterResult.current.stop();
+    }
     lastLayouterResult.current = layouter(
       {
         nodeMap: nodes.current,
@@ -627,7 +571,6 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
       },
       optionState?.layoutOptions || {},
       screen(),
-      // @ts-ignore
       zoomToFit
     );
     return true;
@@ -644,55 +587,57 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
 
   const checkGraph = useCallback(
     (nextGraph: RevisGraph, nextShapes?: RevisShapeDefinition[]) => {
-      // gType is graph type, mType is the Map type that corresponds
+      type VisualClassType = typeof RevisNode | typeof RevisEdge;
 
-      // @ts-ignore
-      const setGraphType = (gType, mType, VisualClass) => {
+      const setGraphType = (
+        gType: RevisNodeDefinition[] | RevisEdgeDefinition[],
+        mType: Map<string, RevisNode> | Map<string, RevisEdge>,
+        VisualClass: VisualClassType
+      ) => {
         let dirty = false;
-        const dupMap = {};
-        gType.forEach((n: { id: any; to: { toString: () => any; }; from: { toString: () => any; }; }) => {
+        const dupMap: Record<string, number> = {};
+        gType.forEach((n: RevisNodeDefinition | RevisEdgeDefinition) => {
           const has = mType.has(n.id);
-          const diff = has && mType.get(n.id).definition !== n;
+          const existing = mType.get(n.id) as (RevisNode | RevisEdge) | undefined;
+          const diff = has && existing && existing.definition !== n;
           if (!has || diff) {
-            // edges only
             if (VisualClass === RevisEdge) {
-              // duplicate ends degection
-              const to = n.to.toString();
-              const from = n.from.toString();
+              const edgeDef = n as RevisEdgeDefinition;
+              const to = edgeDef.to.toString();
+              const from = edgeDef.from.toString();
               const toFrom = [to, from].sort().join("-");
               let dupNumber = 0;
-              // @ts-ignore
               if (dupMap[toFrom] !== undefined) {
-                // @ts-ignore
                 dupNumber = dupMap[toFrom] + 1;
-                // @ts-ignore
                 dupMap[toFrom] = dupNumber;
               } else {
-                // @ts-ignore
                 dupMap[toFrom] = 0;
               }
-              mType.set(
+              (mType as Map<string, RevisEdge>).set(
                 n.id,
-                new VisualClass(
+                new RevisEdge(
                   n.id,
-                  n,
-                  nodes.current.get(to),
-                  nodes.current.get(from),
+                  edgeDef,
+                  nodes.current.get(to)!,
+                  nodes.current.get(from)!,
                   dupNumber
                 )
               );
-            } else if (has) {
-              mType.get(n.id).update(n);
+            } else if (has && existing) {
+              (existing as RevisNode).update(n as RevisNodeDefinition);
             } else {
-              mType.set(n.id, new VisualClass(n.id, n, optionState));
+              (mType as Map<string, RevisNode>).set(
+                n.id,
+                new RevisNode(n.id, n as RevisNodeDefinition, optionState)
+              );
             }
             dirty = dirty || !has;
           }
         });
 
-        // if this Map node is note included in the graph, delete it from the Map
-        mType.forEach((value: { definition: any; }, key: any, map: any) => {
-          if (!gType.includes(value.definition)) {
+        mType.forEach((value, key) => {
+          const definitions = gType.map((g) => g);
+          if (!definitions.some((d) => d === value.definition)) {
             mType.delete(key);
             dirty = true;
           }
@@ -704,10 +649,8 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
         ? shouldRunLayouter(
             {
               graph: {
-                // @ts-ignore
-                nodes: [...nodes.current.values()],
-                // @ts-ignore
-                edges: [...edges.current.values()],
+                nodes: [...nodes.current.values()].map((n) => n.definition),
+                edges: [...edges.current.values()].map((e) => e.definition),
               },
               shapes: shapesRef.current,
             },
@@ -730,7 +673,6 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
     [shouldRunLayouter, runLayout, nodes, edges, shapesRef]
   );
 
-  // we need to detect changes to graph, options, nodeDrawing, edgeDrawing, shapeDrawing or layouter props
   useEffect(() => {
     callbackFn &&
       callbackFn({
@@ -746,21 +688,18 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
     checkGraph(graph, shapes);
   }, [checkGraph, graph, shapes]);
 
-  // when options change, set the state
   useEffect(() => {
-    setOptionState(merge(optionState, options));
+    setOptionState(deepMerge({}, optionState, options));
   }, [options]);
 
-  // when layout or layout options actually change, run the layout again
   const lastLayoutOptions = useRef({});
   useEffect(() => {
-    if (!isEqual(options?.layoutOptions, lastLayoutOptions.current)) {
+    if (!deepEqual(options?.layoutOptions, lastLayoutOptions.current)) {
       lastLayoutOptions.current = options?.layoutOptions || {};
       runLayout();
     }
   }, [options?.layoutOptions]);
 
-  // run the layouter whenever it changes
   useEffect(() => {
     runLayout();
   }, [layouter]);
@@ -777,27 +716,18 @@ const RevisNetworkBase = (props: RevisNetworkBaseProps) => {
         handlers={handlers}
         handleZoom={handleZoomClick}
         hoverState={hoverState}
-        // @ts-ignore
-        images={images}
-        // @ts-ignore
+        images={images || {}}
         interactionState={interactionState}
         nodes={nodes.current}
-        // @ts-ignore
         nodeDrawingFunction={nodeDrawingFunction}
-        // @ts-ignore
         options={optionState}
         panScaleState={psState}
-        // @ts-ignore
         rolloverState={rolloverState}
-        // @ts-ignore
         screen={screenState}
-        // @ts-ignore
         shapes={shapes || []}
-        // @ts-ignore
         shapeDrawingFunction={shapeDrawingFunction}
         uid={uid}
-        // @ts-ignore
-        bounds={getBounds(nodes.current.values(), shapes)}
+        bounds={getBounds(Array.from(nodes.current.values()), shapes)}
       />
     );
   }

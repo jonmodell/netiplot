@@ -1,24 +1,24 @@
 import React from 'react';
 
 interface Tracking {
-  itemType: 'node' | 'edge';
+  itemType: string | null;
   item: any;
-  popupPosition: { x: number; y: number };
+  popupPosition?: { x: number; y: number };
 }
 
 interface HoverPopupOptions {
-  nodeRenderer?: (item: any) => React.ReactNode;
-  edgeRenderer?: (item: any) => React.ReactNode;
+  nodeRenderer?: ((item: any) => React.ReactNode) | null;
+  edgeRenderer?: ((item: any) => React.ReactNode) | null;
 }
 
 interface HoverPopupProps {
   tracking: Tracking;
-  options: HoverPopupOptions;
+  options?: HoverPopupOptions;
   clearHover: () => void;
 }
 const HoverPopup = (props: HoverPopupProps) => {
   const { tracking, options, clearHover } = props;
-  const { nodeRenderer, edgeRenderer } = options;
+  const { nodeRenderer, edgeRenderer } = options || {};
   const { itemType, item, popupPosition } = tracking;
 
   const renderPopup = () => {
@@ -47,7 +47,7 @@ const HoverPopup = (props: HoverPopupProps) => {
   return (
     <div
       className='node-detail'
-      style={{ top: popupPosition.y, left: popupPosition.x }}
+      style={{ top: popupPosition?.y, left: popupPosition?.x }}
       onMouseLeave={clearHover}
     >
       {renderPopup()}

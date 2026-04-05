@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import { mergeDeepRight, pipe, tap } from 'ramda';
+import { deepMerge } from '../util';
 import {
   assignCoords,
   assignEdgeParentChild,
@@ -13,13 +13,8 @@ import {
   shouldAssignCoords,
 } from './utils';
 
-/**
- * Clears everything.
- *
- * @return {void} use with tap()
- */
-const clearNodes = ({ data: { nodes } }) => {
-  nodes.forEach((node) => {
+const clearNodes = ({ data: { nodes } }: any) => {
+  nodes.forEach((node: any) => {
     node.rank = null;
     node.order = null;
     node.isChild = false;
@@ -29,62 +24,41 @@ const clearNodes = ({ data: { nodes } }) => {
   });
 };
 
-/**
- * RANKING
- * Go through all the nodes until you have figured out what level each one lives out based
- * on assigning a higher level to children than parents. Returns a new props object.
- *
- * @return a new props object with extras.maxRank
- */
-const rankNodes = (props) => {
+const rankNodes = (props: any) => {
   const { edges, nodes } = props.data;
   const { isDirected } = props.options;
   let maxRank = 0;
 
-  const setRank = (node, child) => {
+  const setRank = (node: any, child: any) => {
     child.rank = node.rank + 1;
     maxRank = Math.max(maxRank, child.rank);
   };
 
   const crawlAndSetRank = crawl(props, setRank);
 
-  const assignRank = (node) => {
+  const assignRank = (node: any) => {
     if (node.rank === null) {
       node.rank = 0;
       crawlAndSetRank(node);
     }
   };
 
-  // directed version
   if (isDirected) {
-    // directed - rank by nodes that are only parents on top to be crawled first
     edges.forEach(assignEdgeParentChild);
     nodes.sort(compareByParentChild).forEach(assignRank);
   } else {
-    // non-directed - rank by mass
-    nodes.sort(compareByMass).forEach((node) => {
+    nodes.sort(compareByMass).forEach((node: any) => {
       if (node.rank === null) {
         node.rank = 0;
         crawlAndSetRank(node);
       }
     });
   }
-  return mergeDeepRight(props, { extras: { maxRank } });
+  return deepMerge(props, { extras: { maxRank } });
 };
 
-/**
- * ORDERING
- */
-const orderNodesWithRank = orderNodes(); // Gets max rank from extras by default
+const orderNodesWithRank = orderNodes();
 
-/**
- * POSITIONING
- * Measuring the width required for a parent to reasonably fit all future generations:
- * - x position all nodes by combination of order and parent location. This may take a few passes.
- * - y position according to rank.
- *
- * @return {void} use with tap()
- */
 const positionNodes = ({
   data: { nodes },
   options: {
@@ -95,18 +69,15 @@ const positionNodes = ({
   },
   extras: { maxRank },
   scr,
-}) => {
-  // Get the initial coordinates based on direction
+}: any) => {
   const nodesToAssignCoords = nodes.filter(shouldAssignCoords);
-  const coords = nodesToAssignCoords.map((node) => {
+  const coords = nodesToAssignCoords.map((node: any) => {
     let x;
     let y;
-    // up-down or down-up
     if (['UD', 'DU'].includes(direction)) {
       x = node.order || 0;
       y = direction === 'DU' ? maxRank - node.rank : node.rank;
     } else {
-      // left-right or right-left
       x = direction === 'RL' ? maxRank - node.rank : node.rank;
       y = node.order || 0;
     }
@@ -116,44 +87,41 @@ const positionNodes = ({
   const spacingFn = spaceNodesByScreenSize
     ? scaleCoordsByScreenSize(coords, scr)
     : scaleCoords(horizontalNodeSpacing, verticalNodeSpacing);
-  // Apply spacing and assign the coordinates
   const coordsWithSpacing = coords.map(spacingFn);
   const coordsByNodeId = new Map(getCoordsKeyValuePairs(coordsWithSpacing));
-  nodesToAssignCoords.forEach(assignCoords(({ id }) => coordsByNodeId.get(id)));
+  nodesToAssignCoords.forEach(assignCoords(({ id }: any) => coordsByNodeId.get(id)));
 };
 
-const layoutNodes = pipe(
-  tap(clearNodes),
-  rankNodes,
-  tap(orderNodesWithRank),
-  tap(positionNodes),
-);
+const layoutNodes = (props: any) => {
+  clearNodes(props);
+  const ranked = rankNodes(props);
+  orderNodesWithRank(ranked);
+  positionNodes(ranked);
+};
 
 const defaultOptions = {
   horizontalNodeSpacing: 100,
   verticalNodeSpacing: 200,
-  isDirected: false, // uses the direction of edges to figure out placement
-  spaceNodesByScreenSize: true, // Automatically determine node spacing based on screen size
-  direction: 'UD', // UD, DU, LR, RL
+  isDirected: false,
+  spaceNodesByScreenSize: true,
+  direction: 'UD',
 };
 
-// expect data to have been put into DataSet format
-// expect standard options
-const hierarchical = (data, options, scr, onStopped) => {
-  const opts = mergeDeepRight(defaultOptions, options);
+const hierarchical = (data: any, options: any, scr: any, onStopped?: () => void) => {
+  const opts = deepMerge(defaultOptions, options);
   const { nodeMap, edgeMap } = data;
 
-  const nodes = [];
-  const edges = [];
-  nodeMap.forEach((value, key, map) => {
+  const nodes: any[] = [];
+  const edges: any[] = [];
+  nodeMap.forEach((value: any) => {
     nodes.push(value);
   });
 
-  edgeMap.forEach((value, key, map) => {
+  edgeMap.forEach((value: any) => {
     edges.push(value);
   });
   layoutNodes({ data: { nodes, edges }, scr, options: opts });
-  nodes.forEach((n) => {
+  nodes.forEach((n: any) => {
     delete n.width;
     delete n.parent;
     delete n.isParent;
@@ -163,7 +131,6 @@ const hierarchical = (data, options, scr, onStopped) => {
     delete n.rank;
   });
 
-  // call onStopped at end of pass
   if (onStopped) {
     onStopped();
   }
