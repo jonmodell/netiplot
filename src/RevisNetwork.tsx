@@ -38,9 +38,8 @@ import {
   RevisGraph,
   RevisNodeDefinition,
   RevisEdgeDefinition,
+  RevisLayouterResult,
   HoverState,
-  InteractionState,
-  Bounds,
   RevisOptions,
 } from "./types";
 
@@ -89,7 +88,7 @@ const RevisNetworkBase = (props: RevisNetworkProps) => {
   );
   const edges = useRef<Map<string, RevisEdge>>(new Map());
   const shapesRef = useRef<RevisShapeDefinition[]>();
-  const lastLayouterResult = useRef<ReturnType<typeof layouter> | null>(null);
+  const lastLayouterResult = useRef<RevisLayouterResult>(null);
 
   const baseCanvas = useRef<HTMLCanvasElement | null>(null);
   const [screenState, setScreenState] = useState<RevisScreen>({
@@ -560,7 +559,7 @@ const RevisNetworkBase = (props: RevisNetworkProps) => {
   const runLayout = useCallback(() => {
     interactionDispatch({ type: "runLayout" });
     if (!nodes.current) return false;
-    if (lastLayouterResult?.current?.stop) {
+    if (lastLayouterResult.current && typeof lastLayouterResult.current === 'object' && 'stop' in lastLayouterResult.current) {
       lastLayouterResult.current.stop();
     }
     lastLayouterResult.current = layouter(

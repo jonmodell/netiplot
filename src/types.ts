@@ -230,21 +230,27 @@ export interface RevisCallbackData {
 }
 
 /**
+ * Return type for layouter functions. Layouters may return void/boolean for synchronous layouts,
+ * or an object with a `stop()` method for layouts that run asynchronously (e.g., force simulations).
+ */
+export type RevisLayouterResult = void | boolean | { stop: () => void } | null;
+
+/**
  * Layouter function signature. Receives graph data, options, screen info, and an optional
- * completion callback. Return value can be anything (e.g., an object with a `stop()` method).
+ * completion callback.
  */
 export type RevisLayouter = (
   data: { nodeMap: Map<string, RevisNode>; edgeMap: Map<string, RevisEdge>; shapes?: RevisShapeDefinition[] },
   options: RevisLayoutOptions,
   screen: RevisScreen,
   onStopped?: () => void,
-) => any;
+) => RevisLayouterResult;
 
 /**
  * Predicate to determine whether the layouter should re-run when graph data changes.
  */
 export type ShouldRunLayouter = (
-  prev: { graph: { nodes: any[]; edges: any[] }; shapes?: RevisShapeDefinition[] },
+  prev: { graph: { nodes: RevisNodeDefinition[]; edges: RevisEdgeDefinition[] }; shapes?: RevisShapeDefinition[] },
   next: { graph: RevisGraph; shapes?: RevisShapeDefinition[] },
 ) => boolean;
 

@@ -40,6 +40,7 @@ export type {
 
   // Layouter
   RevisLayouter,
+  RevisLayouterResult,
   ShouldRunLayouter,
 
   // Component props
