@@ -706,6 +706,7 @@ const RevisNetworkBase = (props: RevisNetworkProps) => {
   if (nodes.current && edges.current) {
     return (
       <Renderer
+        className={className}
         clearHover={clearHover}
         customControls={customControls}
         edges={edges.current}
