@@ -633,17 +633,23 @@ export class NetiplotEngine {
     }
 
     if (nodesDirty || edgesDirty || shouldRunLayouterResult) {
-      this.runLayout();
+      this.runLayout(); // runLayout → dispatchInteraction → notify()
+    } else if (nextShapes !== undefined) {
+      this.notify(); // shapes changed but no layout needed
     }
-
-    this.notify();
+    // No unconditional notify — only notify when state actually changed
   }
 
   setOptions(options: RevisOptions): void {
-    this.options = deepMerge({}, this.options, options);
+    const merged = deepMerge({}, this.options, options);
+    // Bail out if the effective options are unchanged — prevents infinite re-renders
+    // when consumers pass an inline options object literal (new reference every render).
+    if (deepEqual(merged, this.options)) return;
+    this.options = merged;
     if (!deepEqual(options?.layoutOptions, this.lastLayoutOptions)) {
       this.lastLayoutOptions = options?.layoutOptions ?? {};
-      this.runLayout();
+      this.runLayout(); // runLayout → notify()
+      return;
     }
     this.notify();
   }

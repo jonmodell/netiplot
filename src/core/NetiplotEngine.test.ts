@@ -151,15 +151,62 @@ describe('setGraph', () => {
     expect(mockLayouter).not.toHaveBeenCalled();
   });
 
+  it('does not notify when graph is unchanged (prevents React infinite loop)', () => {
+    const engine = new NetiplotEngine({ graph, layouter: mockLayouter });
+    const listener = jest.fn();
+    engine.subscribe(listener);
+    listener.mockClear();
+    engine.setGraph(graph); // same references, nothing dirty
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('updates shapes', () => {
     const engine = new NetiplotEngine({ graph: { nodes: [], edges: [] }, layouter: mockLayouter });
     const shapes = [{ shape: 'rect', x: 0, y: 0, width: 100, height: 50 }];
     engine.setGraph({ nodes: [], edges: [] }, shapes);
     expect(engine.getState().shapes).toEqual(shapes);
   });
+
+  it('notifies when only shapes change (no nodes dirty)', () => {
+    const engine = new NetiplotEngine({ graph: { nodes: [], edges: [] }, layouter: mockLayouter });
+    const listener = jest.fn();
+    engine.subscribe(listener);
+    listener.mockClear();
+    engine.setGraph({ nodes: [], edges: [] }, [{ shape: 'rect', x: 0, y: 0, width: 10, height: 10 }]);
+    expect(listener).toHaveBeenCalled();
+  });
 });
 
 // ── Camera ────────────────────────────────────────────────────────────────────
+
+describe('setOptions', () => {
+  it('notifies when options change', () => {
+    const engine = new NetiplotEngine({ graph: { nodes: [], edges: [] }, layouter: mockLayouter });
+    const listener = jest.fn();
+    engine.subscribe(listener);
+    engine.setOptions({ nodes: { defaultSize: 99 } });
+    expect(listener).toHaveBeenCalled();
+  });
+
+  it('does not notify when options are semantically unchanged (prevents React infinite loop)', () => {
+    const engine = new NetiplotEngine({
+      graph: { nodes: [], edges: [] },
+      layouter: mockLayouter,
+      options: { nodes: { showLabels: true, defaultSize: 30 } },
+    });
+    const listener = jest.fn();
+    engine.subscribe(listener);
+    // Same values, different object reference — simulates inline JSX options
+    engine.setOptions({ nodes: { showLabels: true, defaultSize: 30 } });
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('updates options in state', () => {
+    const engine = new NetiplotEngine({ graph: { nodes: [], edges: [] }, layouter: mockLayouter });
+    engine.setOptions({ nodes: { defaultSize: 55 } });
+    expect(engine.getState().options.nodes?.defaultSize).toBe(55);
+  });
+});
 
 describe('getCamera / getNodePositions', () => {
   it('getCamera returns current pan/scale', () => {
