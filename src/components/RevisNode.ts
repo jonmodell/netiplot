@@ -63,7 +63,7 @@ class Node {
     }
   }
 
-  render(state: any, context: CanvasRenderingContext2D, images: {}, drawingFunction: Function) {
+  render(state: any, context: CanvasRenderingContext2D, images: {}, drawingFunction: Function | null) {
     const hovering = state.rolloverItem === this;
     const { destination } = this;
     const style = { ...DEFAULT_STYLE, ...this.definition.style };

@@ -11,9 +11,13 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        vanilla: resolve(__dirname, 'src/vanilla/Netiplot.ts'),
+      },
       formats: ['es', 'cjs'],
-      fileName: (format) => format === 'es' ? 'index.esm.js' : 'index.js',
+      fileName: (format, entryName) =>
+        format === 'es' ? `${entryName}.esm.js` : `${entryName}.js`,
     },
     outDir: 'lib',
     rollupOptions: {

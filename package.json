@@ -26,6 +26,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.esm.js",
       "require": "./lib/index.js"
+    },
+    "./vanilla": {
+      "types": "./lib/vanilla.d.ts",
+      "import": "./lib/vanilla.esm.js",
+      "require": "./lib/vanilla.js"
     }
   },
   "files": [

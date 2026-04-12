@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Netiplot — Vanilla Demo</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: system-ui, sans-serif;
+        background: #1a1a2e;
+        color: #eee;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        background: #16213e;
+        border-bottom: 1px solid #0f3460;
+        flex-shrink: 0;
+      }
+
+      header h1 { font-size: 1rem; font-weight: 600; }
+      header span { font-size: 0.75rem; opacity: 0.5; }
+
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #16213e;
+        border-bottom: 1px solid #0f3460;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      button {
+        padding: 5px 12px;
+        border: 1px solid #0f3460;
+        border-radius: 4px;
+        background: #0f3460;
+        color: #eee;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background 0.15s;
+      }
+      button:hover { background: #1a4a80; }
+
+      .toolbar label { font-size: 0.8rem; opacity: 0.7; }
+
+      #network-container {
+        flex: 1;
+        position: relative;
+        min-height: 0;
+      }
+
+      .netiplot-tooltip {
+        background: rgba(22, 33, 62, 0.95);
+        border: 1px solid #0f3460;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        min-width: 140px;
+        pointer-events: none;
+      }
+      .netiplot-tooltip h4 { margin-bottom: 4px; color: #6ee7f7; }
+      .netiplot-tooltip p  { opacity: 0.7; font-size: 0.75rem; }
+
+      #status {
+        font-size: 0.75rem;
+        opacity: 0.5;
+        margin-left: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Netiplot</h1>
+      <span>vanilla JS demo</span>
+      <span id="status"></span>
+    </header>
+
+    <div class="toolbar">
+      <label>Zoom:</label>
+      <button id="btn-zoom-in">+</button>
+      <button id="btn-zoom-out">−</button>
+      <button id="btn-fit">Fit all</button>
+      <button id="btn-fit-sel">Fit selection</button>
+      <label style="margin-left:12px">Graph:</label>
+      <button id="btn-small">Small (5)</button>
+      <button id="btn-medium">Medium (20)</button>
+      <button id="btn-large">Large (50)</button>
+      <button id="btn-add">Add node</button>
+    </div>
+
+    <div id="network-container"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
