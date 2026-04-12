@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Revis Network - Demo',
-  description: 'Interactive demos for the revis-network-ts visualization library',
+  title: 'Netiplot - Demo',
+  description: 'Interactive demos for the netiplot visualization library',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

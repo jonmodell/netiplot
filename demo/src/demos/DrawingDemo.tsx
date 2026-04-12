@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { RevisNetwork } from 'revis-network-ts';
-import type { RevisShapeDefinition } from 'revis-network-ts';
+import { RevisNetwork } from 'netiplot';
+import type { RevisShapeDefinition } from 'netiplot';
 import {
   iconMap,
   nodeDrawing,

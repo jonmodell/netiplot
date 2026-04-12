@@ -15,8 +15,8 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "revis-network-ts": ["../src/index.ts"],
-      "revis-network-ts/*": ["../src/*"],
+      "netiplot": ["../src/index.ts"],
+      "netiplot/*": ["../src/*"],
       "@/*": ["./src/*"]
     }
   },

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { RevisNetwork } from 'revis-network-ts';
+import { RevisNetwork } from 'netiplot';
 import randomData from '@/examples/data/random';
 import images from '@/examples/data/images';
 import hierarchical from '@/examples/layouts/hierarchical';
