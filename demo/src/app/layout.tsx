@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Netiplot - Demo',
-  description: 'Interactive demos for the netiplot visualization library',
+  description: 'Interactive demos for the @jonmodell/netiplot visualization library',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { RevisNetwork } from 'netiplot';
+import { RevisNetwork } from '@jonmodell/netiplot';
 import basicData from '@/examples/data/basic';
 import shapeData from '@/examples/data/basicShapes';
 import shapeColorData from '@/examples/data/basicStyled';

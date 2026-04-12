@@ -1,0 +1,16 @@
+- Publish to npm
+- Create a non-react / vanilla JavaScript version
+- Create a WebGL version
+- Create Demo Site and deploy to Vercel
+  - include a documentation section
+   - include usage examples
+   - include a live demo
+
+- Create applications with the library for the following use cases
+   - Dependency visualization
+   - Network analysis
+   - Social network analysis
+   - Document idea analysis
+   - Process-flow diagrams
+   - Mind mapping
+   - Requirement diagrams
