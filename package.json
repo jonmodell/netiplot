@@ -1,6 +1,6 @@
 {
-  "name": "netiplot",
-  "version": "0.0.3",
+  "name": "@jonmodell/netiplot",
+  "version": "1.0.0",
   "description": "React network visualization library",
   "author": "Jon Modell<jon@jonmodell.com>",
   "license": "MIT",

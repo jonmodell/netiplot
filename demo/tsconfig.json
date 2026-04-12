@@ -15,8 +15,8 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "netiplot": ["../src/index.ts"],
-      "netiplot/*": ["../src/*"],
+      "@jonmodell/netiplot": ["../src/index.ts"],
+      "@jonmodell/netiplot/*": ["../src/*"],
       "@/*": ["./src/*"]
     }
   },
