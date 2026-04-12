@@ -1,33 +1,125 @@
-import { RevisNode, RevisEdge} from './components';
+import { RevisNode, RevisEdge } from './components';
 
-export type CustomControlsFn = (
-  event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-) => void;
+// ─── Public Types (exported to consumers) ────────────────────────────────────
 
-export interface CustomControlsData {
-  zoomIn: CustomControlsFn;
-  zoomOut: CustomControlsFn;
-  fitAll: CustomControlsFn;
-  fitSelection: CustomControlsFn;
+/**
+ * A single image entry in the images map. Can be a raw image element
+ * or an object with positioning/scaling options.
+ */
+export type RevisImageEntry =
+  | HTMLImageElement
+  | SVGImageElement
+  | HTMLCanvasElement
+  | {
+      element: HTMLImageElement | HTMLCanvasElement;
+      scale?: number;
+      offsetX?: number;
+      offsetY?: number;
+    };
+
+/**
+ * Map of image IDs to image entries, passed to the `images` prop.
+ */
+export type RevisImageMap = Record<string, RevisImageEntry>;
+
+/**
+ * The data structure for a Revis Node definition. Additional properties can be
+ * added to support custom node drawing functions.
+ */
+export interface RevisNodeDefinition {
+  id: string;
+  fixed?: boolean;
+  image?: string;
+  innerLabel?: string;
+  label?: string;
+  shape?: string;
+  size?: number;
+  type?: string;
+  x?: number;
+  y?: number;
+  style?: {
+    border?: string;
+    size?: number;
+    background?: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
 }
 
-export interface LayouterData {
-  layout: (
-    nodes: Array<RevisNode>,
-    edges: Array<RevisEdge>,
-    options: Object
-  ) => Array<RevisNode>;
-  options: Object;
+export interface RevisEdgeStyle {
+  color?: string;
+  lineWidth?: number;
+  font?: string;
+  fontColor?: string;
 }
 
-export interface RevisScreen {
-  width: number | undefined;
-  height: number | undefined;
-  ratio: number;
-  boundingRect: DOMRect | undefined | null;
+/**
+ * The data structure for a Revis Edge definition.
+ */
+export interface RevisEdgeDefinition {
+  id: string;
+  from: string;
+  to: string;
+  label?: string;
+  size?: number;
+  style?: RevisEdgeStyle;
 }
 
-export interface RevisNodeOptions { 
+/**
+ * The graph data passed to the `graph` prop.
+ */
+export interface RevisGraph {
+  nodes: RevisNodeDefinition[];
+  edges: RevisEdgeDefinition[];
+}
+
+/**
+ * The data structure for a Revis Shape definition. Additional properties can be
+ * added to support custom shape drawing functions.
+ */
+export interface RevisShapeDefinition {
+  id?: string;
+  shape: string;
+
+  // size and position — use width/height, or size for square shapes
+  height?: number;
+  width?: number;
+  x: number;
+  y: number;
+  size?: number;
+
+  // visibility and editing
+  visible?: boolean;
+  noEdit?: boolean;
+  noClick?: boolean;
+  boundsIgnore?: boolean;
+
+  // image support
+  image?: HTMLImageElement | SVGImageElement | HTMLCanvasElement;
+  imageId?: string;
+  mapImageId?: string;
+  scale?: number;
+
+  style?: RevisShapeStyle;
+
+  // custom shape drawing function attributes
+  [key: string]: any;
+}
+
+export interface RevisShapeStyle {
+  lineWidth?: number;
+  border?: string | CanvasGradient | CanvasPattern;
+  strokeColor?: string | CanvasGradient | CanvasPattern;
+  stroke?: string | CanvasGradient | CanvasPattern;
+  line?: string | CanvasGradient | CanvasPattern;
+  background?: string;
+  fillColor?: string;
+  fill?: string;
+}
+
+// ─── Options ─────────────────────────────────────────────────────────────────
+
+export interface RevisNodeOptions {
   showLabels?: boolean;
   defaultSize?: number;
   scaleCompensation?: false;
@@ -44,7 +136,7 @@ export interface RevisCameraOptions {
   fitAllPadding?: {
     horizontal: number;
     vertical: number;
-  }
+  };
 }
 
 export interface RevisLayoutOptions {
@@ -55,8 +147,8 @@ export interface RevisLayoutOptions {
 export interface RevisHoverOptions {
   width?: number;
   height?: number;
-  edgeRenderer?: ((edge: RevisEdge) => void) | null;
-  nodeRenderer?: ((node: RevisNode) => void) | null;
+  edgeRenderer?: ((edge: RevisEdgeDefinition) => React.ReactNode) | null;
+  nodeRenderer?: ((node: RevisNodeDefinition) => React.ReactNode) | null;
   delay?: number;
 }
 
@@ -65,6 +157,9 @@ export interface RevisInteractionOptions {
   allowShapeInteraction?: boolean;
 }
 
+/**
+ * All configuration options for the RevisNetwork component.
+ */
 export interface RevisOptions {
   nodes?: RevisNodeOptions;
   edges?: RevisEdgeOptions;
@@ -75,109 +170,133 @@ export interface RevisOptions {
   showMutedOverlay?: boolean;
 }
 
-/**
-* @description The data structure for a Revis Shape definition. Additional properties can be
-* added to support custom shape drawing functions.
-*/
-export interface RevisShapeDefinition {
-  // various ways to support images as shapes
-  image?: HTMLImageElement | SVGImageElement | HTMLCanvasElement;
-  imageId?: string;
-  mapImageId?: string;
-  
-  // custom shape drawing functions "shape" variable to be used to switch between different shapes
-  // dreawing routines
-  shape: string;
-
-  // size and position and visibility
-  scale?: number;
-  height: number;
-  width: number;
-  x: number;
-  y: number;
-  visible?: boolean;
-  
-  style?: {
-    lineWidth?: number;
-    // all of these set the stroke color
-    border?: string | CanvasGradient | CanvasPattern;
-    strokeColor?: string | CanvasGradient | CanvasPattern;
-    stroke?: string | CanvasGradient | CanvasPattern;
-    line?: string | CanvasGradient | CanvasPattern;
-
-    // all of these set the fill color
-    background?: string;
-    fillColor?: string;
-    fill?: string;
-  }
-
-  // custom shape drawing functions attributes you choose to add and support
-  [key: string]: any;
-}
+// ─── Drawing Functions ───────────────────────────────────────────────────────
 
 /**
- * @description The data structure for a Revis Node definition. Additional properties can be
- * added to support custom node drawing functions.
+ * Custom node drawing function. Receives a canvas 2D context and the node definition.
  */
-export interface RevisNodeDefinition {
-  fixed?: boolean;
-  id: string;
-  image?: string;
-  innerLabel?: string;
-  label?: string;
-  shape?: string;
-  size?: number;
-  type?: string;
-  x?: number;
-  y?: number;
-  style?: {
-    border?: string;
-    [key: string]: any;
-  };
-  [key: string]: any;
-}
+export type NodeDrawingFunction = (ctx: CanvasRenderingContext2D, node: RevisNodeDefinition) => void;
 
+/**
+ * Custom shape drawing function. Receives a canvas 2D context and the shape definition.
+ */
+export type ShapeDrawingFunction = (ctx: CanvasRenderingContext2D, shape: RevisShapeDefinition) => void;
 
-export interface RevisEdgeStyle {
-  color?: string;
-  lineWidth?: number;
-  font?: string;
-  fontColor?: string;
+// ─── Callbacks ───────────────────────────────────────────────────────────────
+
+export type CustomControlsFn = (
+  event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+) => void;
+
+export interface CustomControlsData {
+  zoomIn: CustomControlsFn;
+  zoomOut: CustomControlsFn;
+  fitAll: CustomControlsFn;
+  fitSelection: CustomControlsFn;
 }
 
 /**
- * @description The data structure for a Revis Edge definition.  Since there is no custom 
- * EdgeDrawingFunction, the edge definition is a simple object.
+ * Mouse event types emitted by the `onMouse` callback.
  */
-export interface RevisEdgeDefinition {
-  id: string;
-  from: string;
-  to: string;
-  label?: string;
-  size?: number;
-  style?: RevisEdgeStyle;
+export type RevisMouseEventType =
+  | 'nodeClick'
+  | 'nodeDblClick'
+  | 'nodesDragged'
+  | 'edgeClick'
+  | 'edgeDblClick'
+  | 'shapeClick'
+  | 'shapeDblClick'
+  | 'shapeUpdate'
+  | 'backgroundClick';
+
+/**
+ * The `onMouse` callback signature.
+ */
+export type RevisMouseHandler = (
+  type: RevisMouseEventType,
+  items?: RevisNodeDefinition | RevisEdgeDefinition | RevisShapeDefinition | RevisNodeDefinition[] | RevisShapeDefinition[] | null,
+  event?: MouseEvent,
+) => void;
+
+/**
+ * Data provided to the `callbackFn` prop, giving programmatic access to the network.
+ */
+export interface RevisCallbackData {
+  nodes: React.RefObject<Map<string, RevisNode>>;
+  getNodePositions: (nodes: Map<string, RevisNode>) => Record<string, { x: number; y: number }>;
+  getPositions: () => Record<string, { x: number; y: number }>;
+  getCamera: () => PanScaleState;
+  fit: () => boolean;
 }
 
-export interface RevisGraph {
-  nodes: RevisNodeDefinition[];
-  edges: RevisEdgeDefinition[];
-}
+/**
+ * Return type for layouter functions. Layouters may return void/boolean for synchronous layouts,
+ * or an object with a `stop()` method for layouts that run asynchronously (e.g., force simulations).
+ */
+export type RevisLayouterResult = void | boolean | { stop: () => void } | null;
 
-export interface RevisNetworkBaseProps {
-  callbackFn?: Function;
+/**
+ * Layouter function signature. Receives graph data, options, screen info, and an optional
+ * completion callback.
+ */
+export type RevisLayouter = (
+  data: { nodeMap: Map<string, RevisNode>; edgeMap: Map<string, RevisEdge>; shapes?: RevisShapeDefinition[] },
+  options: RevisLayoutOptions,
+  screen: RevisScreen,
+  onStopped?: () => void,
+) => RevisLayouterResult;
+
+/**
+ * Predicate to determine whether the layouter should re-run when graph data changes.
+ */
+export type ShouldRunLayouter = (
+  prev: { graph: { nodes: RevisNodeDefinition[]; edges: RevisEdgeDefinition[] }; shapes?: RevisShapeDefinition[] },
+  next: { graph: RevisGraph; shapes?: RevisShapeDefinition[] },
+) => boolean;
+
+// ─── Component Props ─────────────────────────────────────────────────────────
+
+/**
+ * All props accepted by the `<RevisNetwork>` component.
+ */
+export interface RevisNetworkProps {
+  /** Callback providing programmatic access to the network */
+  callbackFn?: (data: RevisCallbackData) => void;
+  /** CSS class name for the container */
   className?: string;
-  customControls?: (data: CustomControlsData) => React.ReactNode;
+  /** Custom zoom controls renderer. Pass `null` to hide controls entirely. */
+  customControls?: ((data: CustomControlsData) => React.ReactNode) | null;
+  /** Enable debug mode */
   debug?: boolean;
+  /** The graph data (nodes and edges) */
   graph: RevisGraph;
+  /** A unique identifier for this network instance */
   identifier?: string;
-  images?: Object;
-  layouter?: (data: LayouterData, options: any, screen: any) => void;
-  nodeDrawingFunction?: (context: any, definition: any, size: number) => void;
-  onMouse?: (type: string, items?: any, event?: any, network?: any) => void;
+  /** Map of image IDs to image entries for node icons */
+  images?: RevisImageMap;
+  /** Layout algorithm function */
+  layouter?: RevisLayouter;
+  /** Custom node drawing function for the canvas */
+  nodeDrawingFunction?: NodeDrawingFunction;
+  /** Mouse event callback */
+  onMouse?: RevisMouseHandler;
+  /** Configuration options */
   options?: RevisOptions;
-  shapeDrawingFunction?: (context: any, definition: any, size: number) => void;
+  /** Custom shape drawing function for the canvas */
+  shapeDrawingFunction?: ShapeDrawingFunction;
+  /** Background shapes to render behind the graph */
   shapes?: RevisShapeDefinition[];
-  shouldRunLayouter?: (prev: any, next: any) => boolean;
+  /** Predicate controlling when the layouter re-runs */
+  shouldRunLayouter?: ShouldRunLayouter;
+}
+
+// ─── Internal Types (used within the library) ────────────────────────────────
+
+export interface RevisScreen {
+  width: number | undefined;
+  height: number | undefined;
+  ratio: number;
+  boundingRect: DOMRect | undefined | null;
 }
 
 export interface DrawingBounds {
@@ -192,119 +311,59 @@ export interface Bounds {
   minY: number;
   maxX: number;
   maxY: number;
+  width?: number;
+  height?: number;
 }
 
 export type PanScaleState = {
-  destinationPan: {
-    x: number;
-    y: number;
-  };
-  destinationScale: number;
-  pan: {
-    x: number;
-    y: number;
-  };
+  destinationPan: { x: number; y: number } | null;
+  destinationScale: number | null;
+  pan: { x: number; y: number };
+  panPerFrame: { x: number; y: number } | null;
   scale: number;
 };
 
 export type InteractionState = {
-  action: string;
-  actionItem: string;
-  actionItemType: string;
-  actionItemBounds: Bounds;
-  actionItemPosition: {
-    x: number;
-    y: number;
-  };
-  actionItemScale: number;
-  actionItemRotation: number;
-  actionItemRotationOffset: number;
-  actionItemRotationOffsetX: number;
-  actionItemRotationOffsetY: number;
-  actionItemRotationOffsetZ: number;
-  actionItemRotationX: number;
-  actionItemRotationY: number;
-  actionItemRotationZ: number;
-  actionItemLabel: string;
-  actionItemLabelStyle: Object;
-  actionItemLabelPosition: string;
+  action: string | null;
+  draggedNodes: RevisNodeDefinition[];
+  dragMouseMoved: boolean;
+  mouseMoved?: boolean;
+  shape: RevisShapeDefinition | null;
+  shapeHandle: string | null;
 };
 
-export type RolloverState = {
-  id: string;
-  type: string;
-  bounds: Bounds;
-  position: {
-    x: number;
-    y: number;
-  };
-  scale: number;
-  rotation: number;
-  rotationOffset: number;
-  rotationOffsetX: number;
-  rotationOffsetY: number;
-  rotationOffsetZ: number;
-  rotationX: number;
-  rotationY: number;
-  rotationZ: number;
-  label: string;
-  labelStyle: Object;
-  labelPosition: string;
+export type HoverState = {
+  item: RevisNodeDefinition | RevisEdgeDefinition | null;
+  itemType: string | null;
+  popupPosition?: { x: number; y: number };
 };
 
-export type EditItem = {
-  id: string;
-  type: string;
-  bounds: any;
-  position: {
-    x: number;
-    y: number;
-  };
-  scale: number;
-  rotation: number;
-  rotationOffset: number;
-  rotationOffsetX: number;
-  rotationOffsetY: number;
-  rotationOffsetZ: number;
-  rotationX: number;
-  rotationY: number;
-  rotationZ: number;
-  label: string;
-  labelStyle: Object;
-  labelPosition: string;
-};
-
-export type NodeDrawingFunction = (node: RevisNode, ctx: CanvasRenderingContext2D) => void;
-export type ShapeDrawingFunction = (
-  shape: RevisShapeDefinition,
-  ctx: CanvasRenderingContext2D
-) => void;
-
-export type Handlers = (type: string, payload?: unknown) => void;
-
-export interface RendererOptions{
-  showMutedOverlay: boolean;
-  editMode: boolean;
-}
+export type Handlers = (type: string, payload?: HTMLCanvasElement | null) => void;
 
 export interface RendererProps {
-  className?: string;
-  customControls?: ((data: CustomControlsData) => React.ReactNode) | null;
-  nodes: Map<string, RevisNode>;
-  edges: Map<string, RevisEdge>;
-  shapes: RevisShapeDefinition[];
   bounds: Bounds;
-  panScaleState: PanScaleState;
-  interactionState: InteractionState;
-  rolloverState: RolloverState;
-  editItem?: EditItem;
-  nodeDrawingFunction?: NodeDrawingFunction;
-  shapeDrawingFunction?: ShapeDrawingFunction;
+  className?: string;
+  clearHover: () => void;
+  customControls?: ((data: CustomControlsData) => React.ReactNode) | null;
+  edges: Map<string, RevisEdge>;
+  handleKey: (event: KeyboardEvent) => boolean;
+  handleMouse: (event: MouseEvent) => boolean;
+  handleMouseWheel: (event: WheelEvent) => void;
+  handleZoom: (event: { preventDefault: () => void }, level: string) => void;
   handlers?: Handlers;
-  screen: {
-    width: number;
-    height: number;
-  };
-  images: Map<string, unknown>;
-  options: RendererOptions;
+  hoverState: HoverState;
+  images: RevisImageMap;
+  interactionState: InteractionState;
+  nodeDrawingFunction?: NodeDrawingFunction;
+  nodes: Map<string, RevisNode>;
+  options: RevisOptions;
+  panScaleState: PanScaleState;
+  rolloverState: RevisNode | RevisEdge | null;
+  screen: RevisScreen;
+  shapeDrawingFunction?: ShapeDrawingFunction;
+  shapes: RevisShapeDefinition[];
+  uid: React.RefObject<string>;
 }
+
+// Backwards compatibility alias
+export type RevisNetworkBaseProps = RevisNetworkProps;

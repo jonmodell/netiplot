@@ -1,6 +1,7 @@
 import { useReducer } from 'react';
+import { InteractionState, RevisNodeDefinition, RevisShapeDefinition } from '../types';
 
-export const initialInteraction = {
+export const initialInteraction: InteractionState = {
   action: null,
   draggedNodes: [],
   dragMouseMoved: false,
@@ -8,33 +9,32 @@ export const initialInteraction = {
   shapeHandle: null,
 };
 
-const actionTypes = {
-  addToDrag: 'addToDrag',
-  edgeDown: 'edgeDown',
-  endLayout: 'endLayout',
-  handleDown: 'handleDown',
-  handleMove: 'handleMove',
-  handleUp: 'handleUp',
-  mouseMoved: 'mouseMoved',
-  pan: 'pan',
-  releaseDrag: 'releaseDrag',
-  reset: 'reset',
-  runLayout: 'runLayout',
-  shapeDown: 'shapeDown',
-  shapeMove: 'shapeMove',
-  shapeUp: 'shapeUp',
-};
+export type InteractionAction =
+  | { type: 'addToDrag'; payload: RevisNodeDefinition[] }
+  | { type: 'edgeDown' }
+  | { type: 'endLayout' }
+  | { type: 'handleDown'; payload: string }
+  | { type: 'handleMove' }
+  | { type: 'handleUp' }
+  | { type: 'mouseMoved' }
+  | { type: 'pan' }
+  | { type: 'releaseDrag' }
+  | { type: 'reset' }
+  | { type: 'runLayout' }
+  | { type: 'shapeDown'; payload: RevisShapeDefinition }
+  | { type: 'shapeMove' }
+  | { type: 'shapeUp' };
 
-function interactionReducer(state: { action: any; }, action: { type: any; payload?: any; }) {
+function interactionReducer(state: InteractionState, action: InteractionAction): InteractionState {
   switch (action.type) {
-    case actionTypes.addToDrag: {
+    case 'addToDrag': {
       return {
         ...state,
         action: 'drag',
         draggedNodes: action.payload,
       };
     }
-    case actionTypes.edgeDown: {
+    case 'edgeDown': {
       return {
         ...state,
         action: 'edgeDown',
@@ -42,7 +42,7 @@ function interactionReducer(state: { action: any; }, action: { type: any; payloa
         draggedNodes: [],
       };
     }
-    case actionTypes.pan: {
+    case 'pan': {
       return {
         ...state,
         action: 'pan',
@@ -52,32 +52,32 @@ function interactionReducer(state: { action: any; }, action: { type: any; payloa
         mouseMoved: false,
       };
     }
-    case actionTypes.releaseDrag: {
+    case 'releaseDrag': {
       return {
         ...state,
         action: null,
         dragMouseMoved: false,
       };
     }
-    case actionTypes.mouseMoved: {
+    case 'mouseMoved': {
       return {
         ...state,
         mouseMoved: true,
       };
     }
-    case actionTypes.runLayout: {
+    case 'runLayout': {
       return {
         ...state,
         action: 'layout',
       };
     }
-    case actionTypes.endLayout: {
+    case 'endLayout': {
       return {
         ...state,
         action: null,
       };
     }
-    case actionTypes.shapeDown: {
+    case 'shapeDown': {
       return {
         ...state,
         action: 'shapeDrag',
@@ -86,21 +86,20 @@ function interactionReducer(state: { action: any; }, action: { type: any; payloa
         shape: action.payload,
       };
     }
-    case actionTypes.shapeUp: {
+    case 'shapeUp': {
       return {
         ...state,
         action: null,
         shapeHandle: null,
       };
     }
-    case actionTypes.shapeMove: {
+    case 'shapeMove': {
       return {
         ...state,
         mouseMoved: true,
       };
     }
-
-    case actionTypes.handleDown: {
+    case 'handleDown': {
       return {
         ...state,
         action: 'handleDrag',
@@ -108,19 +107,25 @@ function interactionReducer(state: { action: any; }, action: { type: any; payloa
         shapeHandle: action.payload,
       };
     }
-
-    case actionTypes.handleMove: {
+    case 'handleMove': {
       return {
         ...state,
         mouseMoved: true,
       };
     }
-
-    case actionTypes.reset: {
+    case 'handleUp': {
+      return {
+        ...state,
+        action: null,
+        shapeHandle: null,
+      };
+    }
+    case 'reset': {
       return { ...initialInteraction, action: state.action };
     }
     default: {
-      throw new Error(`Unhandled type: ${action.type}`);
+      const _exhaustive: never = action;
+      throw new Error(`Unhandled type: ${(_exhaustive as InteractionAction).type}`);
     }
   }
 }

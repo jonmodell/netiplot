@@ -1,7 +1,7 @@
-import { RevisOptions } from '../types';
+import { RevisNodeDefinition, RevisOptions } from '../types';
 import { drawText, drawImage } from './util';
 
-const DEFAULT_STYLE = {
+const DEFAULT_STYLE: Record<string, any> = {
   background: '#ffffff',
   border: '#333333',
   lineWidth: 2,
@@ -18,40 +18,13 @@ const NODE_SIZE = 30;
 TODO: instead of having the node support predefined states like selected, hovering, faded, etc...
 have animations run from methods like bounce() or even animate(animateFunction => sizeModifier)
 have the node call state.getStyleForNode(definition) => {background, border, lineWidth} to get
-style information.  The node would not hold status or state properties, those would have to be 
+style information.  The node would not hold status or state properties, those would have to be
 kept in the implementation - a list of selected, faded, etc... to figure out the style
 */
 
-interface NodeDefinition {
-  fixed?: boolean;
-  height?: number;
-  id?: string;
-  image?: string;
-  innerLabel?: string;
-  label?: string;
-  mass?: number;
-  outerLabel?: string;
-  size?: number;
-  style?: {
-    background?: string;
-    border?: string;
-    fill?: string;
-    font?: string;
-    fontColor?: string;
-    innerLabelColor?: string;
-    lineWidth?: number;
-    opacity?: number;
-    stroke?: string;
-    size?: number;
-  };
-  width?: number;
-  x?: number;
-  y?: number;
-}
-
 class Node {
   id: string;
-  definition: NodeDefinition;
+  definition: RevisNodeDefinition;
   size: number = NODE_SIZE;
   bSize: number;
   mass: number = 1;
@@ -61,7 +34,7 @@ class Node {
   destination: { x: number; y: number } | null;
   delete: boolean = false;
 
-  constructor(id: string | number, definition: NodeDefinition, options: RevisOptions) {
+  constructor(id: string | number, definition: RevisNodeDefinition, options: RevisOptions) {
     this.id = id.toString();
 
     // definition can be set from the outside, and it can change
@@ -83,7 +56,7 @@ class Node {
     this.delete = true;
   }
 
-  update(definition: NodeDefinition) {
+  update(definition: RevisNodeDefinition) {
     this.definition = definition;
     if (definition.fixed === false) {
       this.fixed = false;

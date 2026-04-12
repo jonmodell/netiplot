@@ -1,10 +1,13 @@
 module.exports = {
+  testEnvironment: "jest-environment-jsdom",
   roots: ["src"],
-  setupFilesAfterEnv: ["./jest.setup.ts"],
-  moduleFileExtensions: ["ts", "tsx", "js"],
+  setupFilesAfterEnv: ["./jest.setup.cts"],
+  moduleFileExtensions: ["ts", "tsx", "cts", "js"],
   testPathIgnorePatterns: ["node_modules/"],
   transform: {
-    "^.+\\.tsx?$": "ts-jest"
+    "^.+\\.tsx?$": ["ts-jest", {
+      tsconfig: "./tsconfig.test.json"
+    }]
   },
   testMatch: ["**/*.test.(ts|tsx)"],
   moduleNameMapper: {

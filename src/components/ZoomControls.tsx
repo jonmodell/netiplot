@@ -8,7 +8,6 @@ import {
 
 interface ZoomControlsProps {
   zoom: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, level: string) => void;
-  level: string;
   customControls?: Function;
 }
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
-import { useResizeDetector } from 'react-resize-detector';
 
 const ActionLayer = (props: { handlers?: any; handleMouse?: any; handleMouseWheel?: any; handleKey?: any; }) => {
   const { handlers, handleMouse, handleMouseWheel, handleKey } = props;
@@ -19,10 +18,15 @@ const ActionLayer = (props: { handlers?: any; handleMouse?: any; handleMouseWhee
     return true;
   };
 
-  useResizeDetector({
-    targetRef: actionRef,
-    onResize,
-  });
+  // ResizeObserver for responsive canvas sizing
+  useEffect(() => {
+    const canvas = actionRef.current;
+    if (!canvas) return;
+
+    const observer = new ResizeObserver(() => onResize());
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
 
   // send the actual screen size on the first render only
   useLayoutEffect(() => {

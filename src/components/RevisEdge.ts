@@ -52,7 +52,7 @@ class Edge {
   }
 
   // used to help with mouseover / hover to determine how far a point is from this edge
-  getDistanceFrom(pt: { x: number; y: number; }, opts: { lineStyle: string; }) {
+  getDistanceFrom(pt: { x: number; y: number }, opts: { lineStyle?: string }) {
     if (!this.start || !this.end) {
       return null;
     }

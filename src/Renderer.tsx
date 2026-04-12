@@ -1,71 +1,12 @@
 /* eslint-disable no-param-reassign, no-unused-expressions, no-undef */
 import React, { useEffect, useState } from "react";
-import styled from "styled-components";
+import "./styles.css";
 import { ZoomControls, HoverPopup } from "./components";
 import { ActionLayer, EditLayer } from "./renderingLayers";
-import { RevisNode, RevisEdge } from "./components";
 import { RendererProps, DrawingBounds, PanScaleState, ShapeDrawingFunction, NodeDrawingFunction, RevisShapeDefinition } from "./types";
 import { inViewPort } from "./util";
 
 const MS_PER_RENDER = 30;
-
-const Container = styled.div`
-  display: block;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-
-  canvas {
-    display: block;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    &:focus {
-      outline: none;
-    }
-
-    &.editing {
-      background: rgba(250, 250, 250, 0.3);
-    }
-  }
-  .controls {
-    display: block;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 39px;
-
-    .control-button {
-      position: relative;
-      height: 36px;
-      width: 36px;
-      opacity: 0.7;
-      &:hover {
-        opacity: 0.9;
-      }
-    }
-    button {
-      background: none;
-      padding: 0;
-      margin: 1px 0;
-      border: none;
-      &:focus {
-        outline: 0;
-      }
-    }
-  }
-  .node-detail {
-    display: block;
-    position: relative;
-  }
-`;
 
 const DEFAULT_SHAPE_STYLE = {
   fill: "#ffffff",
@@ -98,7 +39,7 @@ const Renderer = (props: RendererProps) => {
   });
 
   // sets dirty === true whenever the props change
-  useEffect(() => { 
+  useEffect(() => {
     setDirty(true);
   }, [props])
 
@@ -112,32 +53,23 @@ const Renderer = (props: RendererProps) => {
     drawObjects(props.edges.values(), edgesRef, null);
     // nodes
     drawObjects(props.nodes.values(), nodesRef, ndf);
-
-    // draw boundaires for debugging
-    // this.drawBounds(props.bounds, shapesRef, props.panScaleState);
   };
 
   const loop = (elapsedTime = 0) => {
-    // calculate the delta since the last frame
     const delta = elapsedTime - (lastFrameTime || 0);
     const { handlers } = props;
 
-    // queue up an rAF draw call
     const lp = loop;
     animRequest = window.requestAnimationFrame(lp);
 
-    // if we *don't* already have a first frame, and the
-    // delta <  milliseconds per render, don't do anything and return
     if (lastFrameTime && delta < MS_PER_RENDER) {
       return;
     }
 
-    // capture the last frame draw time so we can work out a delta next time.
     lastFrameTime = elapsedTime;
 
     handlers && handlers("tick");
 
-    // now do the frame update and render work
     const ps = props.panScaleState;
     const is = props.interactionState;
     if (dirty || is.action || ps.destinationPan || ps.destinationScale) {
@@ -146,19 +78,6 @@ const Renderer = (props: RendererProps) => {
     }
   };
 
-  /** when props updated, we set dirty to true - replace with effect 
-  componentDidUpdate() {
-    this.dirty = true;
-  }
-  */
-
-  /**
-   * @description - draw a rectangle with the given bounds
-   * @param bounds { minX, minY, width, height } - the bounds of the area to draw
-   * @param shapesRef HTMLCanvasElement - the canvas to draw on
-   * @param panScaleState { pan, scale } - the pan and scale state
-   * @returns boolean - true if the bounds are visible
-   */
   const drawBounds = (
     bounds: DrawingBounds,
     shapesRef: React.RefObject<HTMLCanvasElement>,
@@ -168,9 +87,7 @@ const Renderer = (props: RendererProps) => {
     const ctx: CanvasRenderingContext2D | null = shapesRef.current.getContext("2d");
     const { scale, pan } = panScaleState;
     ctx!.save();
-    //   ctx.clearRect(0, 0, width, height);
     ctx!.transform(scale, 0, 0, scale, pan.x, pan.y);
-    // draw
     ctx!.fillStyle = "rgba(0,0,0,0.2)";
     ctx!.strokeStyle = "#222222";
     ctx!.beginPath();
@@ -188,25 +105,22 @@ const Renderer = (props: RendererProps) => {
     const { scale, pan } = panScaleState;
     const { width, height } = screen;
     ctx!.save();
-    ctx!.clearRect(0, 0, width, height);
+    ctx!.clearRect(0, 0, width as number, height as number);
     ctx!.transform(scale, 0, 0, scale, pan.x, pan.y);
-    items.forEach((i) => {
+    items.forEach((i: RevisShapeDefinition) => {
       if (i.visible !== false) {
         const style = { ...DEFAULT_SHAPE_STYLE, ...(i.style || {}) };
-        // draw
         ctx!.save();
         ctx!.translate(i.x, i.y);
         ctx!.lineWidth = style.lineWidth;
         ctx!.fillStyle = style.background || style.fillColor || style.fill;
-        // @ts-ignore
         ctx!.strokeStyle =
-          style.border || style.strokeColor || style.stroke || style.line;
+          (style.border || style.strokeColor || style.stroke || style.line) as string;
         ctx!.beginPath();
         if (drawingFunction) {
-          // @ts-ignore
-          drawingFunction(ctx, i);
+          drawingFunction(ctx!, i);
         } else {
-          ctx!.fillRect(0, 0, i.width, i.height);
+          ctx!.fillRect(0, 0, i.width || i.size || 0, i.height || i.size || 0);
         }
 
         if (i.shape && i.shape !== "image") {
@@ -215,13 +129,9 @@ const Renderer = (props: RendererProps) => {
             ctx!.fill();
           }
           ctx!.stroke();
-
-          // image support
         } else if (i.mapImageId || i.imageId || i.image) {
-          
           const imageData =
-            // @ts-ignore
-            images[i.mapImageId] || images[i.imageId] || i.image;
+            images[i.mapImageId!] || images[i.imageId!] || i.image;
           if (
             imageData &&
             (imageData instanceof HTMLImageElement ||
@@ -229,7 +139,7 @@ const Renderer = (props: RendererProps) => {
               imageData instanceof HTMLCanvasElement)
           ) {
             const sc = i.scale || 1;
-            ctx!.drawImage(imageData, 0, 0, i.width * sc, i.height * sc);
+            ctx!.drawImage(imageData, 0, 0, (i.width || i.size || 0) * sc, (i.height || i.size || 0) * sc);
           }
         }
 
@@ -240,10 +150,11 @@ const Renderer = (props: RendererProps) => {
     return true;
   };
 
-  // TODO: could check to see if nodes are in viewport before calling render
+  // Items are RevisNode or RevisEdge instances with different render() signatures
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const drawObjects = (items: IterableIterator<any>, ref: React.RefObject<HTMLCanvasElement>, drawingFunction: NodeDrawingFunction | null) => {
     const { panScaleState, options, rolloverState, images, screen } = props;
-    
+
     if (!items || !ref.current) return false;
 
     const { scale, pan } = panScaleState;
@@ -251,16 +162,13 @@ const Renderer = (props: RendererProps) => {
     const viewPort = {
       left: (-10 - pan.x) / scale,
       top: (-10 - pan.y) / scale,
-      right: (10 + width - pan.x) / scale,
-      bottom: (10 + height - pan.y) / scale,
+      right: (10 + (width as number) - pan.x) / scale,
+      bottom: (10 + (height as number) - pan.y) / scale,
     };
-
-    
 
     const context = ref.current!.getContext("2d");
     context!.save();
-    // clear
-    context!.clearRect(0, 0, width, height);
+    context!.clearRect(0, 0, width as number, height as number);
     context!.transform(scale, 0, 0, scale, pan.x, pan.y);
     const st = {
       ...panScaleState,
@@ -268,7 +176,6 @@ const Renderer = (props: RendererProps) => {
       rolloverItem: rolloverState,
     };
 
-    // @ts-ignore
     for (const item of items) {
       if (
         item.render !== undefined &&
@@ -287,32 +194,24 @@ const Renderer = (props: RendererProps) => {
     className,
     customControls,
     screen,
-    // @ts-ignore
     hoverState,
-    // @ts-ignore
     clearHover,
     handlers,
-    // @ts-ignore
     handleKey,
-    // @ts-ignore
     handleMouse,
-    // @ts-ignore
     handleMouseWheel,
-    // @ts-ignore
     handleZoom,
     options,
     panScaleState,
     interactionState,
-    // @ts-ignore
     uid,
     shapes,
   } = props;
 
   const hideControls = customControls === null;
   const { width, height } = screen;
-  // console.log('renderer re-rendering ');
   return (
-    <Container ref={containerRef} className={className} key={uid}>
+    <div ref={containerRef} className={`revis-container ${className || ''}`} key={uid.current}>
       <>
         <canvas ref={shapesRef} width={width} height={height} tabIndex={-4} />
 
@@ -340,16 +239,14 @@ const Renderer = (props: RendererProps) => {
 
       <HoverPopup
         tracking={hoverState}
-        // @ts-ignore
         options={options.hover}
         clearHover={() => clearHover()}
       />
 
       {!hideControls && (
-        // @ts-ignore
         <ZoomControls customControls={customControls} zoom={handleZoom} />
       )}
-    </Container>
+    </div>
   );
 };
 
