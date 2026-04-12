@@ -63,6 +63,7 @@
     "build": "vite build",
     "clean": "rm -rf lib node_modules",
     "dev": "npm --prefix demo run dev",
+    "dev:react": "npm --prefix demo-react run dev",
     "test": "jest --config jest.config.cjs",
     "test:watch": "jest --config jest.config.cjs --watch"
   }

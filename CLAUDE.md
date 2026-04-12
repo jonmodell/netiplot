@@ -71,13 +71,15 @@ Test files live alongside source files (`*.test.ts` / `*.test.tsx`).
 - `deepMerge` / `deepEqual` in `src/util.ts` replace lodash equivalents
 - `ResizeObserver` in `ActionLayer.tsx` replaces react-resize-detector
 
-## Demo App
-A Vite dev app lives in `demo/`. It aliases `revis-network-ts` to `../src/index.ts` for live development against the source.
+## Demo Apps
+- `demo/` — Vanilla JS demo (Vite, plain HTML+TS). Uses `Netiplot` class directly, no framework.
+- `demo-react/` — React/Next.js demo. Uses the `<RevisNetwork>` component.
 
 ## Commands
 ```bash
 npm run build        # Vite library build → lib/
-npm run dev          # Start demo app (demo/ directory)
+npm run dev          # Start vanilla demo (demo/)
+npm run dev:react    # Start React demo (demo-react/)
 npm test             # Jest (all test files)
 npm run test:watch   # Jest in watch mode
 ```
