@@ -6,139 +6,54 @@
     <title>NetiPlot — Vanilla Demo</title>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-
-      body {
-        font-family: system-ui, sans-serif;
-        background: #1a1a2e;
-        color: #eee;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-
-      /* ── Header ── */
-      header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 16px;
-        background: #16213e;
-        border-bottom: 1px solid #0f3460;
-        flex-shrink: 0;
-      }
+      body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #eee; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+      header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; }
       header h1 { font-size: 1rem; font-weight: 600; }
       header span { font-size: 0.75rem; opacity: 0.5; }
       #status { font-size: 0.75rem; opacity: 0.5; margin-left: auto; }
-
-      /* ── Scenario tabs ── */
-      .tabs {
-        display: flex;
-        gap: 2px;
-        padding: 6px 16px 0;
-        background: #16213e;
-        border-bottom: 1px solid #0f3460;
-        flex-shrink: 0;
-        overflow-x: auto;
-      }
-      .tab {
-        padding: 6px 14px;
-        border: 1px solid transparent;
-        border-bottom: none;
-        border-radius: 4px 4px 0 0;
-        background: transparent;
-        color: #aaa;
-        cursor: pointer;
-        font-size: 0.8rem;
-        white-space: nowrap;
-        transition: background 0.15s, color 0.15s;
-      }
+      .tabs { display: flex; gap: 2px; padding: 6px 16px 0; background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; overflow-x: auto; }
+      .tab { padding: 6px 12px; border: 1px solid transparent; border-bottom: none; border-radius: 4px 4px 0 0; background: transparent; color: #aaa; cursor: pointer; font-size: 0.78rem; white-space: nowrap; transition: background 0.15s, color 0.15s; }
       .tab:hover { background: #0f3460; color: #eee; }
       .tab.active { background: #0f3460; color: #fff; border-color: #0f3460; }
-
-      /* ── Toolbar ── */
-      .toolbar {
-        display: flex;
-        gap: 8px;
-        padding: 8px 16px;
-        background: #16213e;
-        border-bottom: 1px solid #0f3460;
-        flex-shrink: 0;
-        flex-wrap: wrap;
-        align-items: center;
-      }
+      .toolbar { display: flex; gap: 8px; padding: 8px 16px; background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
       .toolbar label { font-size: 0.8rem; opacity: 0.7; }
-      .toolbar input[type="range"] { width: 100px; accent-color: #6ee7f7; }
-      .toolbar input[type="number"] { width: 56px; background: #0f3460; border: 1px solid #1a4a80; color: #eee; border-radius: 3px; padding: 3px 6px; font-size: 0.8rem; }
+      .toolbar input[type="range"] { width: 90px; accent-color: #6ee7f7; }
+      .toolbar input[type="number"] { width: 52px; background: #0f3460; border: 1px solid #1a4a80; color: #eee; border-radius: 3px; padding: 2px 5px; font-size: 0.8rem; }
       .toolbar input[type="checkbox"] { accent-color: #6ee7f7; }
+      .toolbar select { background: #0f3460; color: #eee; border: 1px solid #1a4a80; border-radius: 3px; padding: 3px 6px; font-size: 0.8rem; }
       .sep { width: 1px; background: #0f3460; align-self: stretch; margin: 0 4px; }
-
-      button {
-        padding: 5px 12px;
-        border: 1px solid #0f3460;
-        border-radius: 4px;
-        background: #0f3460;
-        color: #eee;
-        cursor: pointer;
-        font-size: 0.8rem;
-        transition: background 0.15s;
-      }
+      button { padding: 4px 10px; border: 1px solid #0f3460; border-radius: 4px; background: #0f3460; color: #eee; cursor: pointer; font-size: 0.78rem; transition: background 0.15s; }
       button:hover { background: #1a4a80; }
-
-      /* ── Canvas area ── */
-      #network-container {
-        flex: 1;
-        position: relative;
-        min-height: 0;
-      }
-
-      /* ── Hover tooltip ── */
-      .netiplot-tooltip {
-        background: rgba(22, 33, 62, 0.95);
-        border: 1px solid #0f3460;
-        border-radius: 6px;
-        padding: 8px 12px;
-        font-size: 0.8rem;
-        min-width: 140px;
-        pointer-events: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      }
+      #network-container { flex: 1; position: relative; min-height: 0; }
+      .netiplot-tooltip { background: rgba(22,33,62,0.95); border: 1px solid #0f3460; border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; min-width: 130px; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
       .netiplot-tooltip h4 { margin-bottom: 4px; color: #6ee7f7; }
       .netiplot-tooltip p  { opacity: 0.7; font-size: 0.75rem; }
     </style>
   </head>
   <body>
     <header>
-      <h1>NetiPlot</h1>
-      <span>vanilla JS</span>
-      <span id="status"></span>
+      <h1>NetiPlot</h1><span>vanilla JS</span><span id="status"></span>
     </header>
 
-    <!-- Scenario tabs -->
     <div class="tabs" id="tabs">
       <button class="tab active" data-scene="basic">Basic</button>
       <button class="tab" data-scene="options">With Options</button>
+      <button class="tab" data-scene="icons">Icons &amp; Labels</button>
+      <button class="tab" data-scene="shapedrawing">Shape Drawing</button>
       <button class="tab" data-scene="drawing">Custom Drawing</button>
       <button class="tab" data-scene="shapes">Shape Interaction</button>
+      <button class="tab" data-scene="tiered">Tiered Layout</button>
       <button class="tab" data-scene="large">Large Graph</button>
     </div>
 
-    <!-- Per-scenario toolbars (only one shown at a time) -->
     <div class="toolbar" id="toolbar-basic">
-      <label>Zoom:</label>
-      <button data-zoom="in">+</button>
-      <button data-zoom="out">−</button>
-      <button data-zoom="all">Fit all</button>
-      <button data-zoom="selection">Fit selection</button>
-      <div class="sep"></div>
-      <button id="btn-add-basic">Add node</button>
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button>
+      <button data-zoom="all">Fit all</button><button data-zoom="selection">Fit selection</button>
+      <div class="sep"></div><button id="btn-add-basic">Add node</button>
     </div>
 
     <div class="toolbar" id="toolbar-options" style="display:none">
-      <label>Zoom:</label>
-      <button data-zoom="in">+</button>
-      <button data-zoom="out">−</button>
-      <button data-zoom="all">Fit all</button>
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button><button data-zoom="all">Fit all</button>
       <div class="sep"></div>
       <label>Nodes: <input type="number" id="opt-count" value="20" min="2" max="200"></label>
       <label>Size: <input type="number" id="opt-size" value="30" min="10" max="80"></label>
@@ -147,14 +62,31 @@
       <label><input type="checkbox" id="opt-straight"> Straight edges</label>
     </div>
 
+    <div class="toolbar" id="toolbar-icons" style="display:none">
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button><button data-zoom="all">Fit all</button>
+      <div class="sep"></div>
+      <span style="font-size:0.8rem;opacity:0.6">SVG icons inside shaped nodes — circle, diamond, hexagon</span>
+    </div>
+
+    <div class="toolbar" id="toolbar-shapedrawing" style="display:none">
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button><button data-zoom="all">Fit all</button>
+      <div class="sep"></div>
+      <label><input type="checkbox" id="sd-toggle"> Edit Shapes</label>
+      <div class="sep"></div>
+      <button id="sd-rect">Rect</button><button id="sd-square">Square</button>
+      <button id="sd-circle">Circle</button><button id="sd-ellipse">Ellipse</button>
+      <button id="sd-cloud">Cloud</button><button id="sd-hex">Hexagon</button>
+      <button id="sd-poly">Polygon</button><button id="sd-text">Text</button>
+      <button id="sd-line">Line</button>
+      <div class="sep"></div>
+      <button id="sd-delete">Delete Top</button><button id="sd-color">Random Color</button>
+    </div>
+
     <div class="toolbar" id="toolbar-drawing" style="display:none">
-      <label>Zoom:</label>
-      <button data-zoom="in">+</button>
-      <button data-zoom="out">−</button>
-      <button data-zoom="all">Fit all</button>
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button><button data-zoom="all">Fit all</button>
       <div class="sep"></div>
       <label>Style:
-        <select id="draw-style" style="background:#0f3460;color:#eee;border:1px solid #1a4a80;border-radius:3px;padding:3px 6px;font-size:0.8rem">
+        <select id="draw-style">
           <option value="circle">Circles</option>
           <option value="diamond">Diamonds</option>
           <option value="hexagon">Hexagons</option>
@@ -164,29 +96,28 @@
     </div>
 
     <div class="toolbar" id="toolbar-shapes" style="display:none">
-      <label>Zoom:</label>
-      <button data-zoom="in">+</button>
-      <button data-zoom="out">−</button>
-      <button data-zoom="all">Fit all</button>
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button><button data-zoom="all">Fit all</button>
       <div class="sep"></div>
-      <span style="font-size:0.8rem;opacity:0.6">Click shapes to move them. Drag handles to resize.</span>
+      <span style="font-size:0.8rem;opacity:0.6">Click shapes to select. Drag to move. Handles to resize.</span>
+    </div>
+
+    <div class="toolbar" id="toolbar-tiered" style="display:none">
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button><button data-zoom="all">Fit all</button>
+      <div class="sep"></div>
+      <label>H-Spacing: <input type="number" id="tiered-h" value="50" min="20" max="300" style="width:56px"></label>
+      <label>V-Spacing: <input type="number" id="tiered-v" value="100" min="20" max="300" style="width:56px"></label>
+      <label>Deco-Spacing: <input type="number" id="tiered-d" value="20" min="0" max="100" style="width:56px"></label>
     </div>
 
     <div class="toolbar" id="toolbar-large" style="display:none">
-      <label>Zoom:</label>
-      <button data-zoom="in">+</button>
-      <button data-zoom="out">−</button>
-      <button data-zoom="all">Fit all</button>
+      <label>Zoom:</label><button data-zoom="in">+</button><button data-zoom="out">−</button><button data-zoom="all">Fit all</button>
       <div class="sep"></div>
-      <label>Nodes:
-        <input type="range" id="large-count" min="10" max="300" value="100">
-        <span id="large-count-label">100</span>
-      </label>
+      <label>Nodes: <input type="range" id="large-count" min="10" max="300" value="100">
+        <span id="large-count-label">100</span></label>
       <button id="btn-gen-large">Generate</button>
     </div>
 
     <div id="network-container"></div>
-
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

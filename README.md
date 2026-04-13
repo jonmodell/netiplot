@@ -10,6 +10,28 @@ npm install @jonmodell/netiplot
 
 ## Usage
 
+### Vanilla JS
+
+```ts
+import { NetiPlot } from '@jonmodell/netiplot/vanilla';
+import type { NetiPlotGraph } from '@jonmodell/netiplot';
+
+const graph: NetiPlotGraph = {
+  nodes: [{ id: 'a', label: 'Node A' }, { id: 'b', label: 'Node B' }],
+  edges: [{ id: 'e1', from: 'a', to: 'b' }],
+};
+
+const net = new NetiPlot(document.getElementById('container')!, {
+  graph,
+  onMouse: (type, item) => console.log(type, item),
+});
+
+// Update the graph at any time:
+net.setGraph(updatedGraph);
+net.zoom('all');
+net.destroy();
+```
+
 ### React
 
 ```tsx
@@ -17,34 +39,13 @@ import { NetiPlotReact } from '@jonmodell/netiplot';
 import type { NetiPlotGraph } from '@jonmodell/netiplot';
 
 const graph: NetiPlotGraph = {
-  nodes: [
-    { id: 'a', label: 'Node A' },
-    { id: 'b', label: 'Node B' },
-  ],
-  edges: [
-    { id: 'e1', from: 'a', to: 'b' },
-  ],
+  nodes: [{ id: 'a', label: 'Node A' }, { id: 'b', label: 'Node B' }],
+  edges: [{ id: 'e1', from: 'a', to: 'b' }],
 };
 
 export default function App() {
   return <NetiPlotReact graph={graph} />;
 }
-```
-
-### Vanilla JS
-
-```ts
-import { NetiPlot } from '@jonmodell/netiplot/vanilla';
-
-const net = new NetiPlot(document.getElementById('container'), {
-  graph: { nodes: [{ id: 'a' }, { id: 'b' }], edges: [{ id: 'e1', from: 'a', to: 'b' }] },
-  onMouse: (type, item) => console.log(type, item),
-});
-
-// Later:
-net.setGraph(updatedGraph);
-net.zoom('all');
-net.destroy();
 ```
 
 ## React Props

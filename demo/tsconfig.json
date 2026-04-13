@@ -3,11 +3,16 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "noEmit": true,
     "strict": true,
+    "noImplicitAny": false,
     "skipLibCheck": true,
     "paths": {
-      "@jonmodell/netiplot/vanilla": ["../src/vanilla/NetiPlot.ts"],
-      "@jonmodell/netiplot": ["../src/index.ts"]
+      "@jonmodell/netiplot/vanilla": ["../lib/vanilla.d.ts"],
+      "@jonmodell/netiplot": ["../lib/index.d.ts"],
+      "@examples/*": ["../demo-react/src/examples/*"]
     }
   },
   "include": ["src"]
