@@ -14,8 +14,10 @@
         height: 100dvh;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
 
+      /* ── Header ── */
       header {
         display: flex;
         align-items: center;
@@ -25,10 +27,36 @@
         border-bottom: 1px solid #0f3460;
         flex-shrink: 0;
       }
-
       header h1 { font-size: 1rem; font-weight: 600; }
       header span { font-size: 0.75rem; opacity: 0.5; }
+      #status { font-size: 0.75rem; opacity: 0.5; margin-left: auto; }
 
+      /* ── Scenario tabs ── */
+      .tabs {
+        display: flex;
+        gap: 2px;
+        padding: 6px 16px 0;
+        background: #16213e;
+        border-bottom: 1px solid #0f3460;
+        flex-shrink: 0;
+        overflow-x: auto;
+      }
+      .tab {
+        padding: 6px 14px;
+        border: 1px solid transparent;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        background: transparent;
+        color: #aaa;
+        cursor: pointer;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        transition: background 0.15s, color 0.15s;
+      }
+      .tab:hover { background: #0f3460; color: #eee; }
+      .tab.active { background: #0f3460; color: #fff; border-color: #0f3460; }
+
+      /* ── Toolbar ── */
       .toolbar {
         display: flex;
         gap: 8px;
@@ -39,6 +67,11 @@
         flex-wrap: wrap;
         align-items: center;
       }
+      .toolbar label { font-size: 0.8rem; opacity: 0.7; }
+      .toolbar input[type="range"] { width: 100px; accent-color: #6ee7f7; }
+      .toolbar input[type="number"] { width: 56px; background: #0f3460; border: 1px solid #1a4a80; color: #eee; border-radius: 3px; padding: 3px 6px; font-size: 0.8rem; }
+      .toolbar input[type="checkbox"] { accent-color: #6ee7f7; }
+      .sep { width: 1px; background: #0f3460; align-self: stretch; margin: 0 4px; }
 
       button {
         padding: 5px 12px;
@@ -52,14 +85,14 @@
       }
       button:hover { background: #1a4a80; }
 
-      .toolbar label { font-size: 0.8rem; opacity: 0.7; }
-
+      /* ── Canvas area ── */
       #network-container {
         flex: 1;
         position: relative;
         min-height: 0;
       }
 
+      /* ── Hover tooltip ── */
       .netiplot-tooltip {
         background: rgba(22, 33, 62, 0.95);
         border: 1px solid #0f3460;
@@ -68,35 +101,88 @@
         font-size: 0.8rem;
         min-width: 140px;
         pointer-events: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       }
       .netiplot-tooltip h4 { margin-bottom: 4px; color: #6ee7f7; }
       .netiplot-tooltip p  { opacity: 0.7; font-size: 0.75rem; }
-
-      #status {
-        font-size: 0.75rem;
-        opacity: 0.5;
-        margin-left: auto;
-      }
     </style>
   </head>
   <body>
     <header>
       <h1>Netiplot</h1>
-      <span>vanilla JS demo</span>
+      <span>vanilla JS</span>
       <span id="status"></span>
     </header>
 
-    <div class="toolbar">
+    <!-- Scenario tabs -->
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-scene="basic">Basic</button>
+      <button class="tab" data-scene="options">With Options</button>
+      <button class="tab" data-scene="drawing">Custom Drawing</button>
+      <button class="tab" data-scene="shapes">Shape Interaction</button>
+      <button class="tab" data-scene="large">Large Graph</button>
+    </div>
+
+    <!-- Per-scenario toolbars (only one shown at a time) -->
+    <div class="toolbar" id="toolbar-basic">
       <label>Zoom:</label>
-      <button id="btn-zoom-in">+</button>
-      <button id="btn-zoom-out">−</button>
-      <button id="btn-fit">Fit all</button>
-      <button id="btn-fit-sel">Fit selection</button>
-      <label style="margin-left:12px">Graph:</label>
-      <button id="btn-small">Small (5)</button>
-      <button id="btn-medium">Medium (20)</button>
-      <button id="btn-large">Large (50)</button>
-      <button id="btn-add">Add node</button>
+      <button data-zoom="in">+</button>
+      <button data-zoom="out">−</button>
+      <button data-zoom="all">Fit all</button>
+      <button data-zoom="selection">Fit selection</button>
+      <div class="sep"></div>
+      <button id="btn-add-basic">Add node</button>
+    </div>
+
+    <div class="toolbar" id="toolbar-options" style="display:none">
+      <label>Zoom:</label>
+      <button data-zoom="in">+</button>
+      <button data-zoom="out">−</button>
+      <button data-zoom="all">Fit all</button>
+      <div class="sep"></div>
+      <label>Nodes: <input type="number" id="opt-count" value="20" min="2" max="200"></label>
+      <label>Size: <input type="number" id="opt-size" value="30" min="10" max="80"></label>
+      <label><input type="checkbox" id="opt-labels" checked> Labels</label>
+      <label><input type="checkbox" id="opt-arrows"> Arrowheads</label>
+      <label><input type="checkbox" id="opt-straight"> Straight edges</label>
+    </div>
+
+    <div class="toolbar" id="toolbar-drawing" style="display:none">
+      <label>Zoom:</label>
+      <button data-zoom="in">+</button>
+      <button data-zoom="out">−</button>
+      <button data-zoom="all">Fit all</button>
+      <div class="sep"></div>
+      <label>Style:
+        <select id="draw-style" style="background:#0f3460;color:#eee;border:1px solid #1a4a80;border-radius:3px;padding:3px 6px;font-size:0.8rem">
+          <option value="circle">Circles</option>
+          <option value="diamond">Diamonds</option>
+          <option value="hexagon">Hexagons</option>
+          <option value="mixed">Mixed</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="toolbar" id="toolbar-shapes" style="display:none">
+      <label>Zoom:</label>
+      <button data-zoom="in">+</button>
+      <button data-zoom="out">−</button>
+      <button data-zoom="all">Fit all</button>
+      <div class="sep"></div>
+      <span style="font-size:0.8rem;opacity:0.6">Click shapes to move them. Drag handles to resize.</span>
+    </div>
+
+    <div class="toolbar" id="toolbar-large" style="display:none">
+      <label>Zoom:</label>
+      <button data-zoom="in">+</button>
+      <button data-zoom="out">−</button>
+      <button data-zoom="all">Fit all</button>
+      <div class="sep"></div>
+      <label>Nodes:
+        <input type="range" id="large-count" min="10" max="300" value="100">
+        <span id="large-count-label">100</span>
+      </label>
+      <button id="btn-gen-large">Generate</button>
     </div>
 
     <div id="network-container"></div>

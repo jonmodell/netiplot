@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
+import React, { useRef, useEffect, useCallback, useSyncExternalStore, memo } from 'react';
 import { deepMerge, getBounds, getNodePositions } from './util';
 import { defaultLayout } from './layout';
 import { defaultOptions } from './options';
@@ -49,9 +49,15 @@ const RevisNetworkBase = (props: RevisNetworkProps) => {
   }
   const engine = engineRef.current;
 
-  // Engine state → React re-renders
-  const [engineState, setEngineState] = useState(() => engine.getState());
-  useEffect(() => engine.subscribe(() => setEngineState(engine.getState())), []);
+  // useSyncExternalStore is the React 18 canonical way to subscribe to an
+  // external store. Combined with the engine's snapshot cache (getState()
+  // returns the same object between notify() calls), React bails out of
+  // re-renders when nothing has actually changed — preventing infinite loops
+  // caused by inline prop objects or frequent tick()-driven notifications.
+  const engineState = useSyncExternalStore(
+    useCallback((onStoreChange) => engine.subscribe(onStoreChange), [engine]),
+    useCallback(() => engine.getState(), [engine])
+  );
 
   // Destroy on unmount
   useEffect(() => () => engine.destroy(), []);

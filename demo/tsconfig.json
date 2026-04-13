@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@jonmodell/netiplot/vanilla": ["../src/vanilla/Netiplot.ts"],
+      "@jonmodell/netiplot": ["../src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

@@ -1,89 +1,336 @@
 import { Netiplot } from '@jonmodell/netiplot/vanilla';
-import type { RevisGraph, RevisNodeDefinition, RevisEdgeDefinition } from '@jonmodell/netiplot';
+import type {
+  RevisGraph,
+  RevisNodeDefinition,
+  RevisEdgeDefinition,
+  RevisShapeDefinition,
+  NodeDrawingFunction,
+} from '@jonmodell/netiplot';
 
-// ── Graph generators ──────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeGraph(nodeCount: number): RevisGraph {
+const status = document.getElementById('status')!;
+const container = document.getElementById('network-container')!;
+
+function setStatus(msg: string) {
+  status.textContent = msg;
+}
+
+function randomGraph(nodeCount: number): RevisGraph {
+  const types = ['server', 'client', 'router', 'switch', 'gateway'];
   const nodes: RevisNodeDefinition[] = Array.from({ length: nodeCount }, (_, i) => ({
     id: `n${i}`,
     label: `Node ${i}`,
-    type: i % 3 === 0 ? 'server' : i % 3 === 1 ? 'client' : 'router',
+    type: types[i % types.length],
+    value: Math.random(),
   }));
-
   const edges: RevisEdgeDefinition[] = [];
-  // Create a spanning tree so every node is connected
   for (let i = 1; i < nodeCount; i++) {
-    const parent = Math.floor(Math.random() * i);
-    edges.push({ id: `e${i}`, from: `n${parent}`, to: `n${i}`, label: '' });
+    edges.push({ id: `e${i}`, from: `n${Math.floor(Math.random() * i)}`, to: `n${i}` });
   }
-  // Add a few extra cross-links
-  const extras = Math.min(nodeCount, 5);
+  const extras = Math.min(nodeCount, 8);
   for (let i = 0; i < extras; i++) {
     const a = Math.floor(Math.random() * nodeCount);
     const b = Math.floor(Math.random() * nodeCount);
-    if (a !== b) {
-      edges.push({ id: `ex${i}`, from: `n${a}`, to: `n${b}` });
-    }
+    if (a !== b) edges.push({ id: `ex${i}`, from: `n${a}`, to: `n${b}` });
   }
-
   return { nodes, edges };
 }
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
+// ── Custom drawing functions ───────────────────────────────────────────────────
 
-const container = document.getElementById('network-container')!;
-const status = document.getElementById('status')!;
+function makeNodeDrawer(style: string): NodeDrawingFunction {
+  return (ctx, node) => {
+    const size = (node.size || 30) / 2;
+    const shape = style === 'mixed'
+      ? (['circle', 'diamond', 'hexagon'] as const)[Math.abs(node.id.charCodeAt(1)) % 3]
+      : style as 'circle' | 'diamond' | 'hexagon';
 
-let nodeCounter = 100;
-let currentGraph = makeGraph(10);
+    // Color by type
+    const colors: Record<string, string> = {
+      server: '#6ee7f7', client: '#a78bfa', router: '#34d399',
+      switch: '#fbbf24', gateway: '#f87171',
+    };
+    const fill = colors[node.type ?? ''] ?? '#888';
 
-const net = new Netiplot(container, {
-  graph: currentGraph,
-  options: {
-    interaction: { allowGraphInteraction: true },
-    edges: { arrowheads: true, showLabels: false },
-    nodes: { showLabels: true, defaultSize: 30 },
-  },
-  onMouse: (type, item) => {
-    if (type === 'nodeClick')      status.textContent = `clicked: ${(item as RevisNodeDefinition)?.id}`;
-    if (type === 'backgroundClick') status.textContent = '';
-  },
-  hover: {
-    delay: 400,
-    width: 160,
-    height: 80,
-    nodeRenderer: (node) => {
-      const el = document.createElement('div');
-      el.innerHTML = `<h4>${node.label ?? node.id}</h4><p>type: ${node.type ?? '—'}</p>`;
-      return el;
-    },
-  },
-});
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
 
-// ── Toolbar wiring ────────────────────────────────────────────────────────────
+    if (shape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(0, 0, size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (shape === 'diamond') {
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.lineTo(size, 0);
+      ctx.lineTo(0, size);
+      ctx.lineTo(-size, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      // hexagon
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i - Math.PI / 6;
+        ctx[i === 0 ? 'moveTo' : 'lineTo'](Math.cos(a) * size, Math.sin(a) * size);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
 
-document.getElementById('btn-zoom-in')!  .addEventListener('click', () => net.zoom('in'));
-document.getElementById('btn-zoom-out')! .addEventListener('click', () => net.zoom('out'));
-document.getElementById('btn-fit')!      .addEventListener('click', () => net.fit());
-document.getElementById('btn-fit-sel')!  .addEventListener('click', () => net.zoom('selection'));
-
-function loadGraph(count: number) {
-  currentGraph = makeGraph(count);
-  net.setGraph(currentGraph);
-  status.textContent = `${count} nodes loaded`;
+    // Label
+    if (node.label) {
+      ctx.fillStyle = '#111';
+      ctx.font = `bold ${Math.max(8, size * 0.55)}px system-ui`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(node.id).replace('n', ''), 0, 0);
+    }
+  };
 }
 
-document.getElementById('btn-small')!  .addEventListener('click', () => loadGraph(5));
-document.getElementById('btn-medium')! .addEventListener('click', () => loadGraph(20));
-document.getElementById('btn-large')!  .addEventListener('click', () => loadGraph(50));
+// ── Shape interaction graph ───────────────────────────────────────────────────
 
-document.getElementById('btn-add')!.addEventListener('click', () => {
-  const newId = `n${nodeCounter++}`;
-  const parentId = currentGraph.nodes[Math.floor(Math.random() * currentGraph.nodes.length)]?.id ?? 'n0';
-  currentGraph = {
-    nodes: [...currentGraph.nodes, { id: newId, label: `Node ${nodeCounter - 1}` }],
-    edges: [...currentGraph.edges, { id: `e${newId}`, from: parentId, to: newId }],
+function makeShapeGraph() {
+  const graph: RevisGraph = {
+    nodes: [
+      { id: 'a', label: 'Alpha', x: 100, y: 100 },
+      { id: 'b', label: 'Beta',  x: 300, y: 200 },
+      { id: 'c', label: 'Gamma', x: 200, y: 350 },
+    ],
+    edges: [
+      { id: 'e1', from: 'a', to: 'b' },
+      { id: 'e2', from: 'b', to: 'c' },
+      { id: 'e3', from: 'c', to: 'a' },
+    ],
   };
-  net.setGraph(currentGraph);
-  status.textContent = `added ${newId}`;
+  const shapes: RevisShapeDefinition[] = [
+    { shape: 'rect', id: 's1', x: 50,  y: 50,  width: 200, height: 120,
+      style: { fill: 'rgba(110,231,247,0.15)', stroke: '#6ee7f7', lineWidth: 1 } },
+    { shape: 'rect', id: 's2', x: 250, y: 180, width: 180, height: 200,
+      style: { fill: 'rgba(167,139,250,0.15)', stroke: '#a78bfa', lineWidth: 1 } },
+  ];
+  return { graph, shapes };
+}
+
+// ── Tooltip renderer ──────────────────────────────────────────────────────────
+
+function tooltipRenderer(node: RevisNodeDefinition): HTMLElement {
+  const el = document.createElement('div');
+  el.innerHTML = `<h4>${node.label ?? node.id}</h4><p>type: ${node.type ?? '—'}</p>`;
+  return el;
+}
+
+// ── Scenario management ───────────────────────────────────────────────────────
+
+let net: Netiplot | null = null;
+let addNodeCounter = 100;
+
+function destroyCurrent() {
+  net?.destroy();
+  net = null;
+}
+
+// ─── Basic ───────────────────────────────────────────────────────────────────
+
+function loadBasic() {
+  destroyCurrent();
+  addNodeCounter = 100;
+  let graph = randomGraph(12);
+
+  net = new Netiplot(container, {
+    graph,
+    options: {
+      interaction: { allowGraphInteraction: true },
+      edges: { arrowheads: true },
+      nodes: { showLabels: true, defaultSize: 30 },
+    },
+    onMouse: (type, item) => {
+      if (type === 'nodeClick') setStatus(`clicked: ${(item as RevisNodeDefinition)?.id ?? ''}`);
+      if (type === 'backgroundClick') setStatus('');
+    },
+    hover: { delay: 400, width: 160, height: 80, nodeRenderer: tooltipRenderer },
+  });
+
+  document.getElementById('btn-add-basic')!.onclick = () => {
+    const id = `n${addNodeCounter++}`;
+    const parent = graph.nodes[Math.floor(Math.random() * graph.nodes.length)].id;
+    graph = {
+      nodes: [...graph.nodes, { id, label: `Node ${addNodeCounter - 1}` }],
+      edges: [...graph.edges, { id: `e${id}`, from: parent, to: id }],
+    };
+    net?.setGraph(graph);
+    setStatus(`added ${id}`);
+  };
+}
+
+// ─── Options ─────────────────────────────────────────────────────────────────
+
+function loadOptions() {
+  destroyCurrent();
+
+  const countEl   = document.getElementById('opt-count')   as HTMLInputElement;
+  const sizeEl    = document.getElementById('opt-size')    as HTMLInputElement;
+  const labelsEl  = document.getElementById('opt-labels')  as HTMLInputElement;
+  const arrowsEl  = document.getElementById('opt-arrows')  as HTMLInputElement;
+  const straightEl = document.getElementById('opt-straight') as HTMLInputElement;
+
+  function buildOptions() {
+    return {
+      interaction: { allowGraphInteraction: true },
+      nodes: { showLabels: labelsEl.checked, defaultSize: Number(sizeEl.value) },
+      edges: {
+        arrowheads: arrowsEl.checked,
+        lineStyle: straightEl.checked ? 'straight' : 'curved',
+        showLabels: false,
+      },
+    };
+  }
+
+  let graph = randomGraph(Number(countEl.value));
+  net = new Netiplot(container, {
+    graph,
+    options: buildOptions(),
+    hover: { delay: 400, width: 160, height: 80, nodeRenderer: tooltipRenderer },
+    onMouse: (type, item) => {
+      if (type === 'nodeClick') setStatus(`clicked: ${(item as RevisNodeDefinition)?.id ?? ''}`);
+    },
+  });
+
+  function applyOptions() { net?.setOptions(buildOptions()); }
+
+  countEl.onchange = () => {
+    graph = randomGraph(Number(countEl.value));
+    net?.setGraph(graph);
+    net?.setOptions(buildOptions());
+  };
+  sizeEl.oninput = applyOptions;
+  labelsEl.onchange = applyOptions;
+  arrowsEl.onchange = applyOptions;
+  straightEl.onchange = applyOptions;
+}
+
+// ─── Custom Drawing ───────────────────────────────────────────────────────────
+
+function loadDrawing() {
+  destroyCurrent();
+
+  const styleEl = document.getElementById('draw-style') as HTMLSelectElement;
+  const graph = randomGraph(18);
+
+  net = new Netiplot(container, {
+    graph,
+    options: {
+      interaction: { allowGraphInteraction: true },
+      nodes: { showLabels: false, defaultSize: 36 },
+      edges: { arrowheads: true },
+    },
+    nodeDrawingFunction: makeNodeDrawer(styleEl.value),
+    hover: { delay: 400, width: 160, height: 80, nodeRenderer: tooltipRenderer },
+    onMouse: (type, item) => {
+      if (type === 'nodeClick') setStatus(`${(item as RevisNodeDefinition)?.type ?? 'node'} clicked`);
+    },
+  });
+
+  styleEl.onchange = () => {
+    // Recreate with new drawing function
+    loadDrawing();
+  };
+}
+
+// ─── Shape Interaction ────────────────────────────────────────────────────────
+
+function loadShapes() {
+  destroyCurrent();
+  const { graph, shapes } = makeShapeGraph();
+
+  net = new Netiplot(container, {
+    graph,
+    shapes,
+    options: {
+      interaction: { allowShapeInteraction: true, allowGraphInteraction: false },
+      nodes: { showLabels: true, defaultSize: 30 },
+      edges: { arrowheads: true },
+    },
+    onMouse: (type, item) => {
+      if (type === 'shapeClick')  setStatus('shape selected');
+      if (type === 'shapeUpdate') setStatus('shape moved');
+      if (type === 'backgroundClick') setStatus('');
+    },
+  });
+}
+
+// ─── Large Graph ──────────────────────────────────────────────────────────────
+
+function loadLarge() {
+  destroyCurrent();
+  const countEl = document.getElementById('large-count') as HTMLInputElement;
+  const labelEl = document.getElementById('large-count-label')!;
+
+  function generate() {
+    const count = Number(countEl.value);
+    labelEl.textContent = String(count);
+    const graph = randomGraph(count);
+    if (net) {
+      net.setGraph(graph);
+    } else {
+      net = new Netiplot(container, {
+        graph,
+        options: {
+          interaction: { allowGraphInteraction: true },
+          nodes: { showLabels: false, defaultSize: 18 },
+          edges: { arrowheads: false },
+        },
+        onMouse: (type) => { if (type === 'nodeClick') setStatus('node clicked'); },
+      });
+    }
+    setStatus(`${count} nodes, ${graph.edges.length} edges`);
+  }
+
+  countEl.oninput = () => { labelEl.textContent = countEl.value; };
+  document.getElementById('btn-gen-large')!.onclick = generate;
+  generate();
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+
+const scenes: Record<string, () => void> = {
+  basic:   loadBasic,
+  options: loadOptions,
+  drawing: loadDrawing,
+  shapes:  loadShapes,
+  large:   loadLarge,
+};
+
+document.getElementById('tabs')!.addEventListener('click', (e) => {
+  const tab = (e.target as HTMLElement).closest('[data-scene]') as HTMLElement | null;
+  if (!tab) return;
+  const scene = tab.dataset.scene!;
+
+  document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  document.querySelectorAll('[id^="toolbar-"]').forEach((t) => {
+    (t as HTMLElement).style.display = 'none';
+  });
+  const tb = document.getElementById(`toolbar-${scene}`);
+  if (tb) tb.style.display = '';
+
+  setStatus('');
+  scenes[scene]?.();
 });
+
+// Wire zoom buttons (delegated — works for all toolbars)
+document.addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest('[data-zoom]') as HTMLElement | null;
+  if (btn && net) net.zoom(btn.dataset.zoom!);
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
+loadBasic();

@@ -94,6 +94,11 @@ export class Netiplot {
   private readonly tooltip: HTMLDivElement;
   private readonly hoverConfig?: NetiplotHoverConfig;
 
+  // True after the first ResizeObserver callback that reports a non-zero screen.
+  // zoomToFit() called in the engine constructor uses a 0×0 screen (layout hasn't
+  // happened yet), so we re-fit once we know the real dimensions.
+  private screenReady = false;
+
   constructor(container: HTMLElement, config: NetiplotConfig) {
     this.hoverConfig = config.hover;
 
@@ -197,6 +202,17 @@ export class Netiplot {
       ]) {
         if (canvas.width !== w) canvas.width = w;
         if (canvas.height !== h) canvas.height = h;
+      }
+
+      // First time we get a real screen size: re-run the layout so node
+      // positions use actual screen dimensions (the initial layout in the
+      // engine constructor ran with width=undefined, causing NaN positions
+      // when spaceNodesByScreenSize is enabled). The layouter calls
+      // zoomToFit() via its onStopped callback, so we don't need to call
+      // it separately.
+      if (!this.screenReady) {
+        this.screenReady = true;
+        this.engine.relayout();
       }
     }
 

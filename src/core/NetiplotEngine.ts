@@ -106,6 +106,10 @@ export class NetiplotEngine {
   readonly uid: string;
 
   private listeners = new Set<() => void>();
+  // Cached snapshot — invalidated on every notify() so getState() returns the
+  // same object reference between notify calls. This lets React's useSyncExternalStore
+  // (and Object.is comparisons in useState) bail out when nothing has changed.
+  private _snapshot: NetiplotEngineState | null = null;
 
   constructor(config: NetiplotEngineConfig) {
     this.options = deepMerge({}, defaultOptions, config.options || {});
@@ -126,21 +130,24 @@ export class NetiplotEngine {
   // ── State ──────────────────────────────────────────────────────────────────
 
   getState(): NetiplotEngineState {
-    return {
-      panScale: this.panScale,
-      interaction: this.interaction,
-      hover: this.hover,
-      options: this.options,
-      screen: this.screen,
-      nodes: this.nodes,
-      edges: this.edges,
-      shapes: this.shapes,
-      rollover: this.rollover,
-      keyAction: this.keyAction,
-      nodeDrawingFunction: this.nodeDrawingFunction,
-      shapeDrawingFunction: this.shapeDrawingFunction,
-      images: this.images,
-    };
+    if (!this._snapshot) {
+      this._snapshot = {
+        panScale: this.panScale,
+        interaction: this.interaction,
+        hover: this.hover,
+        options: this.options,
+        screen: this.screen,
+        nodes: this.nodes,
+        edges: this.edges,
+        shapes: this.shapes,
+        rollover: this.rollover,
+        keyAction: this.keyAction,
+        nodeDrawingFunction: this.nodeDrawingFunction,
+        shapeDrawingFunction: this.shapeDrawingFunction,
+        images: this.images,
+      };
+    }
+    return this._snapshot;
   }
 
   subscribe(fn: () => void): () => void {
@@ -149,6 +156,7 @@ export class NetiplotEngine {
   }
 
   private notify(): void {
+    this._snapshot = null; // invalidate cached snapshot
     for (const fn of this.listeners) fn();
   }
 
@@ -656,6 +664,12 @@ export class NetiplotEngine {
 
   setLayouter(layouter: RevisLayouter): void {
     this.layouter = layouter;
+    this.runLayout();
+  }
+
+  /** Re-run the current layouter. Used by the vanilla class after the screen
+   *  becomes valid (ResizeObserver fires) so layout uses real dimensions. */
+  relayout(): void {
     this.runLayout();
   }
 
