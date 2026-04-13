@@ -3,7 +3,7 @@ import { deepMerge, getBounds, getNodePositions } from './util';
 import { defaultLayout } from './layout';
 import { defaultOptions } from './options';
 import { Renderer } from './Renderer';
-import { NetiplotEngine } from './core/NetiplotEngine';
+import { NetiPlotEngine } from './core/NetiPlotEngine';
 import { NetiPlotProps } from './types';
 
 const NetiPlotReactBase = (props: NetiPlotProps) => {
@@ -32,9 +32,9 @@ const NetiPlotReactBase = (props: NetiPlotProps) => {
   );
 
   // Create engine exactly once (lazy ref initialisation)
-  const engineRef = useRef<NetiplotEngine | null>(null);
+  const engineRef = useRef<NetiPlotEngine | null>(null);
   if (!engineRef.current) {
-    engineRef.current = new NetiplotEngine({
+    engineRef.current = new NetiPlotEngine({
       graph,
       options,
       shapes,

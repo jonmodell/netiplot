@@ -6,7 +6,7 @@
     "strict": true,
     "skipLibCheck": true,
     "paths": {
-      "@jonmodell/netiplot/vanilla": ["../src/vanilla/Netiplot.ts"],
+      "@jonmodell/netiplot/vanilla": ["../src/vanilla/NetiPlot.ts"],
       "@jonmodell/netiplot": ["../src/index.ts"]
     }
   },

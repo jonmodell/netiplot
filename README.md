@@ -34,9 +34,9 @@ export default function App() {
 ### Vanilla JS
 
 ```ts
-import { Netiplot } from '@jonmodell/netiplot/vanilla';
+import { NetiPlot } from '@jonmodell/netiplot/vanilla';
 
-const net = new Netiplot(document.getElementById('container'), {
+const net = new NetiPlot(document.getElementById('container'), {
   graph: { nodes: [{ id: 'a' }, { id: 'b' }], edges: [{ id: 'e1', from: 'a', to: 'b' }] },
   onMouse: (type, item) => console.log(type, item),
 });
@@ -163,7 +163,7 @@ options={{
 ### Vanilla — use the `hover` config (returns `HTMLElement | string`):
 
 ```ts
-new Netiplot(el, {
+new NetiPlot(el, {
   graph,
   hover: {
     nodeRenderer: (node) => `<b>${node.label}</b>`,

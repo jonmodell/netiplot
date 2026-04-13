@@ -1,4 +1,4 @@
-import { Netiplot } from '@jonmodell/netiplot/vanilla';
+import { NetiPlot } from '@jonmodell/netiplot/vanilla';
 import type {
   NetiPlotGraph,
   NetiPlotNodeDefinition,
@@ -128,7 +128,7 @@ function tooltipRenderer(node: NetiPlotNodeDefinition): HTMLElement {
 
 // ── Scenario management ───────────────────────────────────────────────────────
 
-let net: Netiplot | null = null;
+let net: NetiPlot | null = null;
 let addNodeCounter = 100;
 
 function destroyCurrent() {
@@ -143,7 +143,7 @@ function loadBasic() {
   addNodeCounter = 100;
   let graph = randomGraph(12);
 
-  net = new Netiplot(container, {
+  net = new NetiPlot(container, {
     graph,
     options: {
       interaction: { allowGraphInteraction: true },
@@ -193,7 +193,7 @@ function loadOptions() {
   }
 
   let graph = randomGraph(Number(countEl.value));
-  net = new Netiplot(container, {
+  net = new NetiPlot(container, {
     graph,
     options: buildOptions(),
     hover: { delay: 400, width: 160, height: 80, nodeRenderer: tooltipRenderer },
@@ -223,7 +223,7 @@ function loadDrawing() {
   const styleEl = document.getElementById('draw-style') as HTMLSelectElement;
   const graph = randomGraph(18);
 
-  net = new Netiplot(container, {
+  net = new NetiPlot(container, {
     graph,
     options: {
       interaction: { allowGraphInteraction: true },
@@ -249,7 +249,7 @@ function loadShapes() {
   destroyCurrent();
   const { graph, shapes } = makeShapeGraph();
 
-  net = new Netiplot(container, {
+  net = new NetiPlot(container, {
     graph,
     shapes,
     options: {
@@ -279,7 +279,7 @@ function loadLarge() {
     if (net) {
       net.setGraph(graph);
     } else {
-      net = new Netiplot(container, {
+      net = new NetiPlot(container, {
         graph,
         options: {
           interaction: { allowGraphInteraction: true },

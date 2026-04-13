@@ -49,7 +49,7 @@ interface MousePayload {
   e: MouseEvent;
 }
 
-export interface NetiplotEngineConfig {
+export interface NetiPlotEngineConfig {
   graph: NetiPlotGraph;
   options?: NetiPlotOptions;
   shapes?: NetiPlotShapeDefinition[];
@@ -62,7 +62,7 @@ export interface NetiplotEngineConfig {
   identifier?: string;
 }
 
-export interface NetiplotEngineState {
+export interface NetiPlotEngineState {
   panScale: PanScaleState;
   interaction: InteractionState;
   hover: HoverState;
@@ -78,7 +78,7 @@ export interface NetiplotEngineState {
   images: NetiPlotImageMap;
 }
 
-export class NetiplotEngine {
+export class NetiPlotEngine {
   private panScale: PanScaleState = { ...initialPanScaleState };
   private interaction: InteractionState = { ...initialInteraction };
   private hover: HoverState = { item: null, itemType: null };
@@ -109,9 +109,9 @@ export class NetiplotEngine {
   // Cached snapshot — invalidated on every notify() so getState() returns the
   // same object reference between notify calls. This lets React's useSyncExternalStore
   // (and Object.is comparisons in useState) bail out when nothing has changed.
-  private _snapshot: NetiplotEngineState | null = null;
+  private _snapshot: NetiPlotEngineState | null = null;
 
-  constructor(config: NetiplotEngineConfig) {
+  constructor(config: NetiPlotEngineConfig) {
     this.options = deepMerge({}, defaultOptions, config.options || {});
     this.shapes = config.shapes ? [...config.shapes] : [];
     this.layouter = config.layouter ?? defaultLayout;
@@ -129,7 +129,7 @@ export class NetiplotEngine {
 
   // ── State ──────────────────────────────────────────────────────────────────
 
-  getState(): NetiplotEngineState {
+  getState(): NetiPlotEngineState {
     if (!this._snapshot) {
       this._snapshot = {
         panScale: this.panScale,

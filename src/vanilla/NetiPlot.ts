@@ -1,6 +1,6 @@
 import { deepMerge } from '../util';
 import { defaultLayout } from '../layout';
-import { NetiplotEngine } from '../core/NetiplotEngine';
+import { NetiPlotEngine } from '../core/NetiPlotEngine';
 import { EventManager } from '../core/EventManager';
 import { RenderLoop, RenderState } from '../core/RenderLoop';
 import type {
@@ -25,7 +25,7 @@ import type {
  * Vanilla hover configuration. Unlike the React version (which uses React renderers),
  * the vanilla hover uses callbacks that return an HTMLElement or an HTML string.
  */
-export interface NetiplotHoverConfig {
+export interface NetiPlotHoverConfig {
   /** Return an HTMLElement or HTML string to display when hovering a node, or null to suppress. */
   nodeRenderer?: (node: NetiPlotNodeDefinition) => HTMLElement | string | null;
   /** Return an HTMLElement or HTML string to display when hovering an edge, or null to suppress. */
@@ -38,9 +38,9 @@ export interface NetiplotHoverConfig {
   height?: number;
 }
 
-// ── Netiplot config ───────────────────────────────────────────────────────────
+// ── NetiPlot config ───────────────────────────────────────────────────────────
 
-export interface NetiplotConfig {
+export interface NetiPlotConfig {
   /** Graph data. */
   graph: NetiPlotGraph;
   /** Library options (nodes, edges, camera, layout, interaction, etc.). */
@@ -62,23 +62,23 @@ export interface NetiplotConfig {
   /** Stable identifier for this instance. */
   identifier?: string;
   /** Vanilla hover tooltip configuration (callback-based, no React). */
-  hover?: NetiplotHoverConfig;
+  hover?: NetiPlotHoverConfig;
 }
 
-// ── Netiplot ──────────────────────────────────────────────────────────────────
+// ── NetiPlot ──────────────────────────────────────────────────────────────────
 
 /**
  * Vanilla JS network visualization. Drop-in alternative to <NetiPlotReact> for
  * non-React environments.
  *
  * Usage:
- *   const net = new Netiplot(containerElement, { graph: { nodes: [], edges: [] } });
+ *   const net = new NetiPlot(containerElement, { graph: { nodes: [], edges: [] } });
  *   net.setGraph({ nodes, edges });
  *   net.zoom('all');
  *   net.destroy();
  */
-export class Netiplot {
-  private readonly engine: NetiplotEngine;
+export class NetiPlot {
+  private readonly engine: NetiPlotEngine;
   private readonly renderLoop: RenderLoop;
   private readonly eventManager: EventManager;
   private readonly unsubscribe: () => void;
@@ -92,14 +92,14 @@ export class Netiplot {
 
   // Hover tooltip
   private readonly tooltip: HTMLDivElement;
-  private readonly hoverConfig?: NetiplotHoverConfig;
+  private readonly hoverConfig?: NetiPlotHoverConfig;
 
   // True after the first ResizeObserver callback that reports a non-zero screen.
   // zoomToFit() called in the engine constructor uses a 0×0 screen (layout hasn't
   // happened yet), so we re-fit once we know the real dimensions.
   private screenReady = false;
 
-  constructor(container: HTMLElement, config: NetiplotConfig) {
+  constructor(container: HTMLElement, config: NetiPlotConfig) {
     this.hoverConfig = config.hover;
 
     // Ensure container can contain absolutely-positioned children.
@@ -140,7 +140,7 @@ export class Netiplot {
     });
 
     // ── Engine (holds all state and business logic)
-    this.engine = new NetiplotEngine({
+    this.engine = new NetiPlotEngine({
       graph: config.graph,
       options: mergedOptions,
       shapes: config.shapes,
@@ -299,7 +299,7 @@ export class Netiplot {
 
   /**
    * Tear down the instance: stops the render loop, removes event listeners,
-   * destroys the engine, and removes all DOM elements created by Netiplot.
+   * destroys the engine, and removes all DOM elements created by NetiPlot.
    */
   destroy(): void {
     this.unsubscribe();

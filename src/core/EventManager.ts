@@ -1,6 +1,6 @@
 /**
  * EventManagerTarget — the minimal interface that EventManager needs from a
- * host (e.g. NetiplotEngine). Keeping it narrow makes EventManager testable
+ * host (e.g. NetiPlotEngine). Keeping it narrow makes EventManager testable
  * in isolation and decoupled from the full engine.
  */
 export interface EventManagerTarget {

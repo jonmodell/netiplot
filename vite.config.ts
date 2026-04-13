@@ -16,7 +16,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
-        vanilla: resolve(__dirname, 'src/vanilla/Netiplot.ts'),
+        vanilla: resolve(__dirname, 'src/vanilla/NetiPlot.ts'),
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) =>
