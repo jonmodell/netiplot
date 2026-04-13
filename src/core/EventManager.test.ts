@@ -27,10 +27,10 @@ beforeEach(() => {
 
 function makeTarget(): jest.Mocked<EventManagerTarget> {
   return {
-    handleMouse: jest.fn(() => true),
-    handleMouseWheel: jest.fn(),
-    handleKey: jest.fn(() => true),
-    handleResize: jest.fn(() => true),
+    handleMouse: jest.fn((_e: MouseEvent) => true),
+    handleMouseWheel: jest.fn((_e: WheelEvent) => {}),
+    handleKey: jest.fn((_e: KeyboardEvent) => true),
+    handleResize: jest.fn((_canvas: HTMLCanvasElement | null) => true),
   };
 }
 

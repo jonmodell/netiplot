@@ -9,7 +9,9 @@ const graph: NetiPlotGraph = {
   edges: [{ id: 'e1', from: 'a', to: 'b' }],
 };
 
-const mockLayouter: jest.MockedFunction<NetiPlotLayouter> = jest.fn(() => undefined);
+const mockLayouter: jest.MockedFunction<NetiPlotLayouter> = jest.fn(
+  (_data: any, _options: any, _screen: any, _onStopped?: () => void) => undefined
+);
 
 function createMockCanvas(width = 800, height = 600): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
