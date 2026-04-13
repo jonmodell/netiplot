@@ -1,9 +1,10 @@
 /**
- * Tiered decorator layout — TypeScript port of demo-react/src/examples/layouts/tieredDecorator/index.js
+ * Tiered decorator layout — TypeScript port of demo-react/src/examples/layouts/tieredDecorator/
  * Ramda (pipe, tap, mergeDeepRight) replaced with plain functions.
+ * All utils ported faithfully from tieredDecorator/utils.js.
  */
 
-// ── Simple replacements for the three ramda helpers used ─────────────────────
+// ── Simple replacements for ramda helpers ─────────────────────────────────────
 
 function mergeDeepRight(a: any, b: any): any {
   const result: any = { ...a };
@@ -20,7 +21,7 @@ function mergeDeepRight(a: any, b: any): any {
   return result;
 }
 
-// ── Tiered-specific layout utilities (from tieredDecorator/utils.js) ─────────
+// ── Tiered utils (faithful port of tieredDecorator/utils.js) ─────────────────
 
 const compareByParentChild = (a: any, b: any) => {
   const aVal = a.isParent && !a.isChild ? 1 : 0;
@@ -28,10 +29,12 @@ const compareByParentChild = (a: any, b: any) => {
   return bVal - aVal || b.mass - a.mass;
 };
 
-const compareByMass = (a: any, b: any) => {
-  const aVal = a.mass || 0;
-  const bVal = b.mass || 0;
-  return bVal - aVal;
+const compareByMass = (a: any, b: any) => (b.mass || 0) - (a.mass || 0);
+
+const compareByOrder = (a: any, b: any) => {
+  const aVal = a?.parent?.order || 0;
+  const bVal = b?.parent?.order || 0;
+  return aVal - bVal || (b.width || 0) - (a.width || 0) || (b.mass || 0) - (a.mass || 0);
 };
 
 const assignEdgeParentChild = (edge: any) => {
@@ -41,7 +44,7 @@ const assignEdgeParentChild = (edge: any) => {
 
 const getWidth = (node: any): number => {
   if (node) {
-    const w = Math.max(1, node.children.reduce((acc: number, c: any) => acc + getWidth(c), 0));
+    const w = Math.max(1, (node.children || []).reduce((acc: number, c: any) => acc + getWidth(c), 0));
     node.width = w;
     return w;
   }
@@ -70,14 +73,72 @@ const crawl = (
     }
   });
   node.children.sort((a: any, b: any) => a.mass - b.mass);
-  node.children.forEach((child: any) => {
-    crawl(props, nodeCallback, childCondition)(child);
-  });
+  node.children.forEach((child: any) => crawl(props, nodeCallback, childCondition)(child));
   getWidth(node);
 };
 
+/**
+ * Two-pass ordering: groups nodes under parents so they cluster visually.
+ * Faithful port from tieredDecorator/utils.js — critical for correct x positions.
+ */
+const orderNodes = (
+  getNodeRank: (node: any) => any = (node) => node.rank,
+  getMaxRank: (props: any) => number = ({ extras: { maxRank } }: any) => maxRank,
+) => (props: any) => {
+  const { nodes } = props.data;
+  const maxRank = getMaxRank(props);
+
+  // Pass 1: parent-aware order assignment
+  for (let i = 0; i < maxRank + 1; i++) {
+    const sameRankNodes = nodes.filter((n: any) => getNodeRank(n) === i);
+    sameRankNodes.sort(compareByOrder);
+
+    let count = 0;
+    let oldParent: any = null;
+
+    sameRankNodes.forEach((node: any) => {
+      if (node.parent && node.parent !== oldParent) count = 0;
+      oldParent = node.parent;
+      if (!node.order) {
+        count += node.width === 1 ? 0 : node.width / 2;
+        const parentWidth = node.parent !== undefined ? node.parent.width : 0;
+        node.order =
+          (node.parent !== undefined
+            ? node.parent.order - (parentWidth > 1 ? parentWidth / 2 : 0)
+            : 0) + count;
+        count += node.width === 1 ? 1 : node.width / 2;
+      }
+    });
+  }
+
+  // Pass 2: resolve collisions by shifting duplicates right
+  for (let i = 0; i < maxRank + 1; i++) {
+    const sameRankNodes = nodes.filter((n: any) => getNodeRank(n) === i);
+    sameRankNodes.sort((a: any, b: any) => a.order - b.order);
+
+    let oldOrder: any = null;
+    let shift = 0;
+
+    sameRankNodes.forEach((node: any) => {
+      node.order += shift;
+      if (node.order === oldOrder) {
+        shift++;
+        node.order += shift;
+        node.children.forEach((child: any) => {
+          if (getNodeRank(child) > getNodeRank(node)) child.order += shift;
+        });
+      }
+      oldOrder = node.order;
+    });
+  }
+};
+
+// Exact match for tieredDecorator/utils.js falsyNonNumeric — distinguishes
+// numeric 0 (valid coord) from undefined/null/false (unset).
+const falsyNonNumeric = (v: any) => v === undefined || v === null || v === false;
+
 const shouldAssignCoords = ({ x, y, fixed }: any) =>
-  x == null || y == null || fixed == null;
+  falsyNonNumeric(x) || falsyNonNumeric(y) || falsyNonNumeric(fixed);
 
 const assignCoords = (getCoords: (node: any) => any) => (node: any) => {
   const { x, y } = getCoords(node);
@@ -91,23 +152,6 @@ const assignCoords = (getCoords: (node: any) => any) => (node: any) => {
 
 const getCoordsKeyValuePairs = (coords: any[]): [string, any][] =>
   coords.map((c) => [c.id, c]);
-
-const orderNodes = (
-  getNodeRank = (node: any) => node.rank,
-  getMaxRank = ({ extras: { maxRank } }: any) => maxRank,
-) => (props: any) => {
-  const { nodes } = props.data;
-  const maxRank = getMaxRank(props);
-  for (let rank = 0; rank <= maxRank; rank++) {
-    const rankNodes = nodes.filter((n: any) => getNodeRank(n) === rank);
-    rankNodes.sort((a: any, b: any) => {
-      const aVal = a?.parent?.order || 0;
-      const bVal = b?.parent?.order || 0;
-      return aVal - bVal || (b.width || 0) - (a.width || 0) || (b.mass || 0) - (a.mass || 0);
-    });
-    rankNodes.forEach((n: any, i: number) => { n.order = i; });
-  }
-};
 
 // ── Tiered layout phases ──────────────────────────────────────────────────────
 
@@ -202,8 +246,8 @@ const positionNodes = ({
   const nodesToAssignCoords = nodes.filter(shouldAssignCoords);
   const coords = nodesToAssignCoords.map(({ id, order, rank }: any) => ({
     id,
-    x: order * horizontalNodeSpacing,
-    y: rank * verticalNodeSpacing,
+    x: (order || 0) * horizontalNodeSpacing,
+    y: (rank  || 0) * verticalNodeSpacing,
   }));
   const coordsByNodeId = new Map(getCoordsKeyValuePairs(coords));
   nodesToAssignCoords.forEach(assignCoords(({ id }: any) => coordsByNodeId.get(id)));
@@ -214,32 +258,30 @@ const renderDecorations = ({
   extras: { groupings },
   options: { decoratorSpacing, verticalNodeSpacing },
 }: any) => {
-  if (shapes?.length) {
-    shapes.forEach((decoration: any) => {
-      const match = groupings.find(
-        (g: any) => g.name.toLowerCase() === decoration.group?.toLowerCase(),
-      );
-      if (match) {
-        decoration.y = match.minRank * verticalNodeSpacing - verticalNodeSpacing / 2 + decoratorSpacing / 2;
-        decoration.height = (match.maxRank - match.minRank + 1) * verticalNodeSpacing - decoratorSpacing;
-        decoration.x = 0;
-        decoration.width = match.width;
-        decoration.visible = true;
-      } else {
-        decoration.visible = false;
-      }
-    });
-  }
+  if (!shapes?.length) return;
+  shapes.forEach((decoration: any) => {
+    const match = groupings.find(
+      (g: any) => g.name.toLowerCase() === decoration.group?.toLowerCase(),
+    );
+    if (match) {
+      decoration.y = match.minRank * verticalNodeSpacing - verticalNodeSpacing / 2 + decoratorSpacing / 2;
+      decoration.height = (match.maxRank - match.minRank + 1) * verticalNodeSpacing - decoratorSpacing;
+      decoration.x = 0;
+      decoration.width = match.width;
+      decoration.visible = true;
+    } else {
+      decoration.visible = false;
+    }
+  });
 };
 
-function layoutNodes(props: any): any {
+function layoutNodes(props: any): void {
   resetNodes(props);
   const ranked = rankNodes(props);
   const grouped = groupNodes(ranked);
   orderNodesWithMaxPreRank(grouped);
   positionNodes(grouped);
   renderDecorations(grouped);
-  return grouped;
 }
 
 // ── Default options ───────────────────────────────────────────────────────────
