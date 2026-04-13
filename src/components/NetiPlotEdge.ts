@@ -1,5 +1,5 @@
-import { RevisNode } from './RevisNode';
-import { RevisEdgeDefinition, RevisEdgeStyle } from '../types';
+import { NetiPlotNode } from './NetiPlotNode';
+import { NetiPlotEdgeDefinition, NetiPlotEdgeStyle } from '../types';
 import { getDistanceToBezierEdge, getDistanceToLine } from './util';
 
 const DEFAULT_STYLE = { color: '#777777', lineWidth: 2, font: '6px lato' };
@@ -7,18 +7,18 @@ const DEFAULT_STYLE = { color: '#777777', lineWidth: 2, font: '6px lato' };
 class Edge {
   id: string;
   delete: boolean = false;
-  definition: RevisEdgeDefinition;
-  start: RevisNode;
-  end: RevisNode;
+  definition: NetiPlotEdgeDefinition;
+  start: NetiPlotNode;
+  end: NetiPlotNode;
   size: number | null;
-  style: RevisEdgeStyle | null;
+  style: NetiPlotEdgeStyle | null;
   dupNumber: number;
   oldPoints: { sx: number | null; sy: number | null; ex: number | null; ey: number | null };
   cp: { x: number; y: number } | null;
   labelXY: { x: number; y: number };
   labelAngle: number;
 
-  constructor(id: string | number, definition: RevisEdgeDefinition, toNode: RevisNode, fromNode: RevisNode, dupNumber: number | undefined) {
+  constructor(id: string | number, definition: NetiPlotEdgeDefinition, toNode: NetiPlotNode, fromNode: NetiPlotNode, dupNumber: number | undefined) {
     this.id = id.toString();
     this.definition = definition;
     this.start = fromNode;
@@ -47,7 +47,7 @@ class Edge {
   }
 
   // allows style to be set from parent
-  setStyle(style: RevisEdgeStyle) {
+  setStyle(style: NetiPlotEdgeStyle) {
     this.style = style;
   }
 
@@ -81,7 +81,7 @@ class Edge {
     this.delete = true;
   }
 
-  update(definition: RevisEdgeDefinition) {
+  update(definition: NetiPlotEdgeDefinition) {
     this.definition = definition;
   }
 
@@ -328,4 +328,4 @@ class Edge {
   }
 }
 
-export { Edge, Edge as RevisEdge };
+export { Edge, Edge as NetiPlotEdge };

@@ -1,8 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { useInteraction, initialInteraction } from './useInteraction';
-import type { RevisShapeDefinition } from '../types';
+import type { NetiPlotShapeDefinition } from '../types';
 
-const shape: RevisShapeDefinition = { shape: 'rect', x: 0, y: 0, width: 50, height: 50 };
+const shape: NetiPlotShapeDefinition = { shape: 'rect', x: 0, y: 0, width: 50, height: 50 };
 const nodeDef = { id: 'n1', x: 10, y: 20 };
 
 describe('useInteraction initial state', () => {

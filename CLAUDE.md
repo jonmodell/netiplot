@@ -1,49 +1,59 @@
-# revis-network-ts
+# @jonmodell/netiplot
 
 ## What This Is
-A React-based canvas network visualization library. It renders nodes, edges, and shapes on layered HTML5 canvases with pan/zoom, drag, hover, and editing interactions. The primary export is a `<RevisNetwork>` component.
+A canvas network visualization library with two entry points: a React component (`NetiPlotReact`) and a vanilla JS class (`NetiPlot`). Renders nodes, edges, and shapes on layered HTML5 canvases with pan/zoom, drag, hover, and editing interactions.
 
 ## Architecture
 
-### Core Components
-- **RevisNetwork.tsx** - Main orchestrator component. Manages state (pan/scale, interaction, hover), processes mouse/keyboard events, runs layout algorithms, and syncs graph data into internal Maps of RevisNode/RevisEdge instances.
-- **Renderer.tsx** - Rendering engine. Runs a `requestAnimationFrame` loop at ~30fps across 4 stacked canvas layers (shapes, edges, nodes, hover). Container styles live in `src/styles.css`.
-- **RevisNode.ts** - Node class with position, size, animation-to-destination, and canvas drawing (shapes, images, labels).
-- **RevisEdge.ts** - Edge class with line/bezier rendering, arrowheads, labels, and hit-detection math.
+### Core (framework-agnostic — `src/core/`)
+- **NetiPlotEngine.ts** - All business logic: graph sync, mouse/keyboard/layout coordination, state management. Uses a pub/sub `subscribe(fn)` pattern for change notification.
+- **RenderLoop.ts** - RAF loop (~30fps) + canvas draw functions (`drawShapes`, `drawObjects`).
+- **EventManager.ts** - DOM event binding (mouse, wheel, key, ResizeObserver). Accepts any `EventManagerTarget`.
+- **panScaleState.ts** - Pure pan/zoom reducer (`panScaleReducer`, `PanScaleAction`).
+- **interactionState.ts** - Pure interaction reducer (`interactionReducer`, `InteractionAction`).
 
-### Rendering Layers
-- **ActionLayer.tsx** - Transparent canvas capturing mouse/keyboard events. Uses a `ResizeObserver` hook for responsive sizing.
+### React wrapper (`src/`)
+- **NetiPlotReact.tsx** - Thin React component. Creates `NetiPlotEngine`, subscribes via `useSyncExternalStore`, syncs props to engine via effects.
+- **Renderer.tsx** - Renders 4 stacked canvases + `ZoomControls`, `HoverPopup`, `EditLayer`, `ActionLayer`. Uses `RenderLoop` for the RAF loop.
+- **ActionLayer.tsx** - Transparent canvas capturing mouse/keyboard events via ResizeObserver.
 - **EditLayer.tsx** - Canvas for shape selection handles (8 resize handles + bounding box).
 - **HoverPopup.tsx** - React tooltip overlay, shown on hover with configurable delay.
 - **ZoomControls.tsx** - Zoom in/out/fit-all/fit-selection button strip.
 
+### Vanilla wrapper (`src/vanilla/`)
+- **NetiPlot.ts** - Class API: `new NetiPlot(el, config)`. Creates the DOM structure (5 canvases), wires `NetiPlotEngine` + `EventManager` + `RenderLoop`. Re-fits on first valid screen from ResizeObserver.
+
+### Node/Edge classes (`src/components/`)
+- **NetiPlotNode.ts** - Node class: position, size, animation-to-destination, canvas drawing.
+- **NetiPlotEdge.ts** - Edge class: line/bezier rendering, arrowheads, labels, hit-detection.
+
 ### State Management
-Two custom hooks using `useReducer` with fully typed discriminated union action types:
-- **usePanScale** (`PanScaleAction`) - Pan position, zoom scale, animated zoom transitions.
-- **useInteraction** (`InteractionAction`) - Current action (drag/pan/shape edit), dragged nodes, shape handle state.
+Two custom hooks (React) backed by pure reducers (core):
+- **usePanScale** → `panScaleState.ts` — pan position, zoom scale, animated zoom transitions.
+- **useInteraction** → `interactionState.ts` — current action (drag/pan/shape edit), dragged nodes, shape handle state.
 
 ### Layout System
 - **layout/hierarchical.ts** - Default hierarchical (tree) layout with UD/DU/LR/RL directions.
-- **layout/utils.ts** - Ranking, ordering, positioning helpers for hierarchical layout.
-- Custom layouters can be passed as the `layouter` prop (e.g., d3-force, dagre-based). The `RevisLayouter` type describes the signature; `RevisLayouterResult` describes the return value (supports async stoppable layouts via `{ stop: () => void }`).
+- **layout/utils.ts** - Ranking, ordering, positioning helpers.
+- Custom layouters via the `layouter` prop. The `NetiPlotLayouter` type describes the signature; `NetiPlotLayouterResult` supports async stoppable layouts via `{ stop: () => void }`.
 
 ### Types
 All TypeScript interfaces in `src/types.ts`. Key public types (all exported from `src/index.ts`):
-- `RevisGraph` = `{ nodes: RevisNodeDefinition[], edges: RevisEdgeDefinition[] }`
-- `RevisShapeDefinition` - Background shapes with position/size/style
-- `RevisOptions` - Nested config for nodes, edges, camera, layout, hover, interaction
-- `RevisNetworkProps` - All component props (`RevisNetworkBaseProps` is a backwards-compat alias)
-- `RevisLayouter` / `RevisLayouterResult` / `ShouldRunLayouter` - Custom layout function types
+- `NetiPlotGraph` = `{ nodes: NetiPlotNodeDefinition[], edges: NetiPlotEdgeDefinition[] }`
+- `NetiPlotShapeDefinition` - Background shapes with position/size/style
+- `NetiPlotOptions` - Nested config for nodes, edges, camera, layout, hover, interaction
+- `NetiPlotProps` - All `<NetiPlotReact>` component props (`NetiPlotBaseProps` is a backwards-compat alias)
+- `NetiPlotLayouter` / `NetiPlotLayouterResult` / `ShouldRunLayouter` - Custom layout function types
 - `PanScaleState` - Camera state (useful for `callbackFn` consumers)
 
-`RevisNodeDefinition`, `RevisShapeDefinition`, and `RevisLayoutOptions` intentionally carry `[key: string]: any` index signatures to support custom drawing functions that access user-defined properties.
+`NetiPlotNodeDefinition`, `NetiPlotShapeDefinition`, and `NetiPlotLayoutOptions` intentionally carry `[key: string]: any` index signatures to support custom drawing functions that access user-defined properties.
 
 ## Build
 - **Bundler**: Vite in library mode (CJS + ESM output to `lib/`)
 - **TypeScript**: strict mode, target ES2020, jsx react-jsx, moduleResolution bundler
-- **Entry**: `src/index.ts` exports `RevisNetwork` and all public types
+- **Entries**: `src/index.ts` (React) and `src/vanilla/NetiPlot.ts` (vanilla)
 - **Declarations**: generated by `vite-plugin-dts`
-- **Package exports**: `"."` → types/import/require fields in `package.json`
+- **Package exports**: `"."` → React entry; `"./vanilla"` → vanilla entry
 
 ## Dependencies
 **Runtime: none.** Zero runtime dependencies.
@@ -59,25 +69,27 @@ All TypeScript interfaces in `src/types.ts`. Key public types (all exported from
 - **Test tsconfig**: `tsconfig.test.json` (CommonJS module resolution for jest compatibility)
 - **Setup**: `jest.setup.cts` (loads `@testing-library/jest-dom`)
 - **Jest-dom types**: `src/jest.d.ts` augments `jest.Matchers` with `toBeInTheDocument` etc.
-- **Coverage**: ~73% statements, ~84% functions across 189 tests in 9 suites
 
 Test files live alongside source files (`*.test.ts` / `*.test.tsx`).
 
 ## Key Patterns
-- Graph data is synced from props into `Map<string, RevisNode>` and `Map<string, RevisEdge>` refs
+- Graph data is synced from props into `Map<string, NetiPlotNode>` and `Map<string, NetiPlotEdge>` via `NetiPlotEngine.setGraph()`
 - Nodes animate toward destinations (layout positions) each frame via `node.destination`
 - Viewport culling skips off-screen nodes during render
 - Custom drawing functions (`nodeDrawingFunction`, `shapeDrawingFunction`) are passed through to canvas draw calls
 - `deepMerge` / `deepEqual` in `src/util.ts` replace lodash equivalents
-- `ResizeObserver` in `ActionLayer.tsx` replaces react-resize-detector
+- Container CSS class: `.netiplot-container`
+- `useSyncExternalStore` + engine snapshot cache prevent infinite re-renders from inline prop objects
 
-## Demo App
-A Vite dev app lives in `demo/`. It aliases `revis-network-ts` to `../src/index.ts` for live development against the source.
+## Demo Apps
+- `demo/` — Vanilla JS demo (Vite, plain HTML+TS). Uses `NetiPlot` class directly, no framework.
+- `demo-react/` — React/Next.js demo. Uses the `<NetiPlotReact>` component.
 
 ## Commands
 ```bash
 npm run build        # Vite library build → lib/
-npm run dev          # Start demo app (demo/ directory)
+npm run dev          # Start vanilla demo (demo/)
+npm run dev:react    # Start React demo (demo-react/)
 npm test             # Jest (all test files)
 npm run test:watch   # Jest in watch mode
 ```

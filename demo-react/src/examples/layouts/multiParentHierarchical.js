@@ -68,7 +68,7 @@ const multiParentHierarchical = (data, options, screen, onStopped) => {
     : scaleCoords(horizontalNodeSpacing, verticalNodeSpacing);
   const scaledCoords = coords.map(pipe(spacingFn, scaleCoords(0.015, 0.015)));
   const coordsById = new Map(scaledCoords.map((c) => [c.id, c]));
-  // Assign the coordinates for ReVisNetwork
+  // Assign the coordinates for NetiPlot
   nodesToAssignCoords.forEach(assignCoords(({ id }) => coordsById.get(id)));
   // call onStopped at end of pass
   if (onStopped) {

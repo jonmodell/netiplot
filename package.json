@@ -1,7 +1,7 @@
 {
   "name": "@jonmodell/netiplot",
   "version": "1.0.1",
-  "description": "React network visualization library",
+  "description": "Netiplot network visualization library",
   "author": "Jon Modell<jon@jonmodell.com>",
   "license": "MIT",
   "private": false,
@@ -26,6 +26,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.esm.js",
       "require": "./lib/index.js"
+    },
+    "./vanilla": {
+      "types": "./lib/vanilla.d.ts",
+      "import": "./lib/vanilla.esm.js",
+      "require": "./lib/vanilla.js"
     }
   },
   "files": [
@@ -63,6 +68,7 @@
     "build": "vite build",
     "clean": "rm -rf lib node_modules",
     "dev": "npm --prefix demo run dev",
+    "dev:react": "npm --prefix demo-react run dev",
     "test": "jest --config jest.config.cjs",
     "test:watch": "jest --config jest.config.cjs --watch"
   }

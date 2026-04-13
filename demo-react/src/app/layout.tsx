@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Netiplot - Demo',
+  title: 'NetiPlot - Demo',
   description: 'Interactive demos for the @jonmodell/netiplot visualization library',
 };
 

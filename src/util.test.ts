@@ -19,9 +19,9 @@ import {
   deepEqual,
   deepMerge,
 } from './util';
-import { RevisNode } from './components/RevisNode';
-import { RevisEdge } from './components/RevisEdge';
-import type { Bounds, PanScaleState, RevisOptions, RevisScreen, RevisShapeDefinition } from './types';
+import { NetiPlotNode } from './components/NetiPlotNode';
+import { NetiPlotEdge } from './components/NetiPlotEdge';
+import type { Bounds, PanScaleState, NetiPlotOptions, NetiPlotScreen, NetiPlotShapeDefinition } from './types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -33,31 +33,31 @@ const defaultPanScale: PanScaleState = {
   panPerFrame: null,
 };
 
-const defaultScreen: RevisScreen = {
+const defaultScreen: NetiPlotScreen = {
   width: 800,
   height: 600,
   ratio: 1,
   boundingRect: { left: 0, top: 0, width: 800, height: 600, right: 800, bottom: 600, x: 0, y: 0, toJSON: () => ({}) } as DOMRect,
 };
 
-const defaultOptions: RevisOptions = {};
+const defaultOptions: NetiPlotOptions = {};
 
-function makeNode(id: string, x: number, y: number, size = 30): RevisNode {
-  const n = new RevisNode(id, { id, x, y, size }, defaultOptions);
+function makeNode(id: string, x: number, y: number, size = 30): NetiPlotNode {
+  const n = new NetiPlotNode(id, { id, x, y, size }, defaultOptions);
   n.x = x;
   n.y = y;
   n.bSize = size;
   return n;
 }
 
-function makeEdge(id: string, fromNode: RevisNode, toNode: RevisNode): RevisEdge {
-  return new RevisEdge(id, { id, from: fromNode.id, to: toNode.id }, toNode, fromNode, 0);
+function makeEdge(id: string, fromNode: NetiPlotNode, toNode: NetiPlotNode): NetiPlotEdge {
+  return new NetiPlotEdge(id, { id, from: fromNode.id, to: toNode.id }, toNode, fromNode, 0);
 }
 
 // ─── getScreenEdgePan ────────────────────────────────────────────────────────
 
 describe('getScreenEdgePan', () => {
-  const sc: RevisScreen = {
+  const sc: NetiPlotScreen = {
     ...defaultScreen,
     boundingRect: { left: 0, top: 0, width: 800, height: 600, right: 800, bottom: 600, x: 0, y: 0, toJSON: () => ({}) } as DOMRect,
   };
@@ -160,14 +160,14 @@ describe('getBounds', () => {
   });
 
   it('incorporates shapes that are not boundsIgnore', () => {
-    const shape: RevisShapeDefinition = { shape: 'rect', x: 500, y: 400, width: 50, height: 50 };
+    const shape: NetiPlotShapeDefinition = { shape: 'rect', x: 500, y: 400, width: 50, height: 50 };
     const b = getBounds([], [shape]);
     expect(b.maxX).toBeGreaterThanOrEqual(550);
     expect(b.maxY).toBeGreaterThanOrEqual(450);
   });
 
   it('ignores shapes with boundsIgnore set', () => {
-    const shape: RevisShapeDefinition = { shape: 'rect', x: 9999, y: 9999, width: 50, height: 50, boundsIgnore: true };
+    const shape: NetiPlotShapeDefinition = { shape: 'rect', x: 9999, y: 9999, width: 50, height: 50, boundsIgnore: true };
     const b = getBounds([], [shape]);
     expect(b.maxX).toBeLessThan(9000);
   });
@@ -245,7 +245,7 @@ describe('getKeyAction', () => {
 // ─── getShapeAtPos ───────────────────────────────────────────────────────────
 
 describe('getShapeAtPos', () => {
-  const shapes: RevisShapeDefinition[] = [
+  const shapes: NetiPlotShapeDefinition[] = [
     { shape: 'rect', x: 0, y: 0, width: 100, height: 100 },
     { shape: 'rect', x: 200, y: 200, width: 50, height: 50 },
   ];
@@ -264,7 +264,7 @@ describe('getShapeAtPos', () => {
   });
 
   it('respects noClick', () => {
-    const noClickShapes: RevisShapeDefinition[] = [{ shape: 'rect', x: 0, y: 0, width: 100, height: 100, noClick: true }];
+    const noClickShapes: NetiPlotShapeDefinition[] = [{ shape: 'rect', x: 0, y: 0, width: 100, height: 100, noClick: true }];
     expect(getShapeAtPos(noClickShapes, { x: 50, y: 50 })).toBe(false);
   });
 });
@@ -286,7 +286,7 @@ describe('inViewPort', () => {
 // ─── getHandleAtPos ──────────────────────────────────────────────────────────
 
 describe('getHandleAtPos', () => {
-  const shape: RevisShapeDefinition = { shape: 'rect', x: 100, y: 100, width: 100, height: 80 };
+  const shape: NetiPlotShapeDefinition = { shape: 'rect', x: 100, y: 100, width: 100, height: 80 };
 
   it('returns undefined when not near any handle', () => {
     expect(getHandleAtPos(shape, { x: 150, y: 140 }, 1)).toBeUndefined();
@@ -303,7 +303,7 @@ describe('getHandleAtPos', () => {
 // ─── setShapeByHandleDrag ────────────────────────────────────────────────────
 
 describe('setShapeByHandleDrag', () => {
-  const shape: RevisShapeDefinition = { shape: 'rect', x: 100, y: 100, width: 200, height: 150 };
+  const shape: NetiPlotShapeDefinition = { shape: 'rect', x: 100, y: 100, width: 200, height: 150 };
 
   it('br handle increases width and height', () => {
     const r = setShapeByHandleDrag(shape, 'br', { x: 10, y: 10 }, false);

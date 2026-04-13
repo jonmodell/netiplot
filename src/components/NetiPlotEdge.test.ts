@@ -1,21 +1,21 @@
-import { RevisNode } from './RevisNode';
-import { RevisEdge } from './RevisEdge';
-import type { RevisOptions } from '../types';
+import { NetiPlotNode } from './NetiPlotNode';
+import { NetiPlotEdge } from './NetiPlotEdge';
+import type { NetiPlotOptions } from '../types';
 
-const opts: RevisOptions = {};
+const opts: NetiPlotOptions = {};
 
-function makeNode(id: string, x: number, y: number): RevisNode {
-  const n = new RevisNode(id, { id, x, y }, opts);
+function makeNode(id: string, x: number, y: number): NetiPlotNode {
+  const n = new NetiPlotNode(id, { id, x, y }, opts);
   n.x = x;
   n.y = y;
   return n;
 }
 
-function makeEdge(fromNode: RevisNode, toNode: RevisNode, dup = 0): RevisEdge {
-  return new RevisEdge('e1', { id: 'e1', from: fromNode.id, to: toNode.id }, toNode, fromNode, dup);
+function makeEdge(fromNode: NetiPlotNode, toNode: NetiPlotNode, dup = 0): NetiPlotEdge {
+  return new NetiPlotEdge('e1', { id: 'e1', from: fromNode.id, to: toNode.id }, toNode, fromNode, dup);
 }
 
-describe('RevisEdge constructor', () => {
+describe('NetiPlotEdge constructor', () => {
   it('stores id, definition, start, end', () => {
     const n1 = makeNode('n1', 0, 0);
     const n2 = makeNode('n2', 100, 0);
@@ -42,7 +42,7 @@ describe('RevisEdge constructor', () => {
   });
 });
 
-describe('RevisEdge destroy', () => {
+describe('NetiPlotEdge destroy', () => {
   it('sets delete flag', () => {
     const n1 = makeNode('n1', 0, 0);
     const n2 = makeNode('n2', 100, 0);
@@ -52,7 +52,7 @@ describe('RevisEdge destroy', () => {
   });
 });
 
-describe('RevisEdge update', () => {
+describe('NetiPlotEdge update', () => {
   it('replaces definition', () => {
     const n1 = makeNode('n1', 0, 0);
     const n2 = makeNode('n2', 100, 0);
@@ -63,7 +63,7 @@ describe('RevisEdge update', () => {
   });
 });
 
-describe('RevisEdge getControlPoint', () => {
+describe('NetiPlotEdge getControlPoint', () => {
   it('returns (0,0) when start or end is missing', () => {
     const n1 = makeNode('n1', 0, 0);
     const n2 = makeNode('n2', 100, 0);
@@ -86,13 +86,13 @@ describe('RevisEdge getControlPoint', () => {
     const n1 = makeNode('n1', 0, 0);
     const n2 = makeNode('n2', 100, 50);
     const e = makeEdge(n1, n2, 1);
-    const cp0 = new RevisEdge('e0', { id: 'e0', from: 'n1', to: 'n2' }, n2, n1, 0).getControlPoint();
+    const cp0 = new NetiPlotEdge('e0', { id: 'e0', from: 'n1', to: 'n2' }, n2, n1, 0).getControlPoint();
     const cp1 = e.getControlPoint();
     expect(cp1.x).not.toBe(cp0.x);
   });
 });
 
-describe('RevisEdge getDistanceFrom', () => {
+describe('NetiPlotEdge getDistanceFrom', () => {
   it('returns null when start or end is missing', () => {
     const n1 = makeNode('n1', 0, 0);
     const n2 = makeNode('n2', 100, 0);
@@ -120,7 +120,7 @@ describe('RevisEdge getDistanceFrom', () => {
   });
 });
 
-describe('RevisEdge getQuadraticXY', () => {
+describe('NetiPlotEdge getQuadraticXY', () => {
   it('returns a point on the curve between start and end at coef=0.5', () => {
     const n1 = makeNode('n1', 0, 0);
     const n2 = makeNode('n2', 100, 0);
@@ -142,7 +142,7 @@ describe('RevisEdge getQuadraticXY', () => {
   });
 });
 
-describe('RevisEdge render', () => {
+describe('NetiPlotEdge render', () => {
   let ctx: CanvasRenderingContext2D;
 
   beforeEach(() => {

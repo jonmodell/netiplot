@@ -1,50 +1,50 @@
-import { RevisNetwork } from "./RevisNetwork";
+import { NetiPlotReact } from "./NetiPlotReact";
 
-export { RevisNetwork };
+export { NetiPlotReact };
 
 // Public types for consumers
 export type {
   // Graph data
-  RevisGraph,
-  RevisNodeDefinition,
-  RevisEdgeDefinition,
-  RevisEdgeStyle,
+  NetiPlotGraph,
+  NetiPlotNodeDefinition,
+  NetiPlotEdgeDefinition,
+  NetiPlotEdgeStyle,
 
   // Shapes
-  RevisShapeDefinition,
-  RevisShapeStyle,
+  NetiPlotShapeDefinition,
+  NetiPlotShapeStyle,
 
   // Images
-  RevisImageEntry,
-  RevisImageMap,
+  NetiPlotImageDefinition,
+  NetiPlotImageMap,
 
   // Options
-  RevisOptions,
-  RevisNodeOptions,
-  RevisEdgeOptions,
-  RevisCameraOptions,
-  RevisLayoutOptions,
-  RevisHoverOptions,
-  RevisInteractionOptions,
+  NetiPlotOptions,
+  NetiPlotNodeOptions,
+  NetiPlotEdgeOptions,
+  NetiPlotCameraOptions,
+  NetiPlotLayoutOptions,
+  NetiPlotHoverOptions,
+  NetiPlotInteractionOptions,
 
   // Drawing functions
   NodeDrawingFunction,
   ShapeDrawingFunction,
 
   // Callbacks and events
-  RevisMouseEventType,
-  RevisMouseHandler,
-  RevisCallbackData,
+  NetiPlotMouseEventType,
+  NetiPlotMouseHandler,
+  NetiPlotCallbackData,
   CustomControlsData,
   CustomControlsFn,
 
   // Layouter
-  RevisLayouter,
-  RevisLayouterResult,
+  NetiPlotLayouter,
+  NetiPlotLayouterResult,
   ShouldRunLayouter,
 
   // Component props
-  RevisNetworkProps,
+  NetiPlotProps,
 
   // Camera state (useful for callbackFn consumers)
   PanScaleState,

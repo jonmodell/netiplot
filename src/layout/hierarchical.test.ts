@@ -13,8 +13,8 @@ import {
   scaleCoordsByScreenSize,
   shouldAssignCoords,
 } from './utils';
-import { RevisNode } from '../components/RevisNode';
-import { RevisEdge } from '../components/RevisEdge';
+import { NetiPlotNode } from '../components/NetiPlotNode';
+import { NetiPlotEdge } from '../components/NetiPlotEdge';
 
 // ─── Test Helpers ─────────────────────────────────────────────────────────────
 
@@ -27,19 +27,19 @@ function runLayout(
   edgePairs: [string, string][],
   extraOptions: Record<string, unknown> = {},
 ) {
-  const nodeMap = new Map<string, RevisNode>();
+  const nodeMap = new Map<string, NetiPlotNode>();
   for (const def of nodeDefs) {
-    const n = new RevisNode(def.id, { id: def.id }, {});
+    const n = new NetiPlotNode(def.id, { id: def.id }, {});
     if (def.mass !== undefined) (n as any).mass = def.mass;
     nodeMap.set(def.id, n);
   }
 
-  const edgeMap = new Map<string, RevisEdge>();
+  const edgeMap = new Map<string, NetiPlotEdge>();
   edgePairs.forEach(([from, to], i) => {
     const id = `e${i}`;
     edgeMap.set(
       id,
-      new RevisEdge(id, { id, from, to }, nodeMap.get(to)!, nodeMap.get(from)!, 0),
+      new NetiPlotEdge(id, { id, from, to }, nodeMap.get(to)!, nodeMap.get(from)!, 0),
     );
   });
 
@@ -59,7 +59,7 @@ function runLayout(
 }
 
 // After layout, positions land in node.destination (node had x=0,y=0 already set).
-function pos(nodeMap: Map<string, RevisNode>, id: string) {
+function pos(nodeMap: Map<string, NetiPlotNode>, id: string) {
   const n = nodeMap.get(id)!;
   return n.destination ?? { x: n.x, y: n.y };
 }
@@ -204,14 +204,14 @@ describe('hierarchical layout – multiple roots', () => {
 
 describe('hierarchical layout – fixed nodes', () => {
   it('does not move a fixed node', () => {
-    const nodeMap = new Map<string, RevisNode>();
-    const fixed = new RevisNode('fixed', { id: 'fixed', x: 999, y: 888, fixed: true }, {});
-    const child = new RevisNode('child', { id: 'child' }, {});
+    const nodeMap = new Map<string, NetiPlotNode>();
+    const fixed = new NetiPlotNode('fixed', { id: 'fixed', x: 999, y: 888, fixed: true }, {});
+    const child = new NetiPlotNode('child', { id: 'child' }, {});
     nodeMap.set('fixed', fixed);
     nodeMap.set('child', child);
 
-    const edgeMap = new Map<string, RevisEdge>();
-    edgeMap.set('e0', new RevisEdge('e0', { id: 'e0', from: 'fixed', to: 'child' }, child, fixed, 0));
+    const edgeMap = new Map<string, NetiPlotEdge>();
+    edgeMap.set('e0', new NetiPlotEdge('e0', { id: 'e0', from: 'fixed', to: 'child' }, child, fixed, 0));
 
     hierarchical(
       { nodeMap, edgeMap },
@@ -232,16 +232,16 @@ describe('hierarchical layout – fixed nodes', () => {
 describe('hierarchical layout – lifecycle', () => {
   it('calls onStopped when provided', () => {
     const onStopped = jest.fn();
-    const nodes = new Map<string, RevisNode>([
-      ['A', new RevisNode('A', { id: 'A' }, {})],
+    const nodes = new Map<string, NetiPlotNode>([
+      ['A', new NetiPlotNode('A', { id: 'A' }, {})],
     ]);
     hierarchical({ nodeMap: nodes, edgeMap: new Map() }, {}, TEST_SCREEN, onStopped);
     expect(onStopped).toHaveBeenCalledTimes(1);
   });
 
   it('returns true', () => {
-    const nodes = new Map<string, RevisNode>([
-      ['A', new RevisNode('A', { id: 'A' }, {})],
+    const nodes = new Map<string, NetiPlotNode>([
+      ['A', new NetiPlotNode('A', { id: 'A' }, {})],
     ]);
     const result = hierarchical({ nodeMap: nodes, edgeMap: new Map() }, {}, TEST_SCREEN);
     expect(result).toBe(true);

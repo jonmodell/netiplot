@@ -7,13 +7,20 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [
     react(),
-    dts({ insertTypesEntry: true }),
+    dts({
+      insertTypesEntry: true,
+      exclude: ['**/*.test.ts', '**/*.test.tsx'],
+    }),
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        vanilla: resolve(__dirname, 'src/vanilla/NetiPlot.ts'),
+      },
       formats: ['es', 'cjs'],
-      fileName: (format) => format === 'es' ? 'index.esm.js' : 'index.js',
+      fileName: (format, entryName) =>
+        format === 'es' ? `${entryName}.esm.js` : `${entryName}.js`,
     },
     outDir: 'lib',
     rollupOptions: {

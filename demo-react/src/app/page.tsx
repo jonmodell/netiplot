@@ -44,7 +44,7 @@ export default function Home() {
   return (
     <div className="app">
       <aside className="sidebar">
-        <h1>Revis Network</h1>
+        <h1>NetiPlot Network</h1>
         <nav>
           {demos.map((d) => (
             <a

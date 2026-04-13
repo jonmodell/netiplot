@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { RevisNetwork } from '@jonmodell/netiplot';
+import { NetiPlotReact } from '@jonmodell/netiplot';
 import basicData from '@/examples/data/basic';
 import shapeData from '@/examples/data/basicShapes';
 import shapeColorData from '@/examples/data/basicStyled';
@@ -21,7 +21,7 @@ function BasicVariant() {
         A basic example with very few props in the data, and no other options set.
       </div>
       <div className="network-container">
-        <RevisNetwork graph={basicData} onMouse={onMouse} />
+        <NetiPlotReact graph={basicData} onMouse={onMouse} />
       </div>
     </>
   );
@@ -76,7 +76,7 @@ function OptionsVariant() {
         </button>
       </div>
       <div className="network-container">
-        <RevisNetwork
+        <NetiPlotReact
           graph={graph}
           onMouse={onMouse}
           images={images}
@@ -102,7 +102,7 @@ function ShapesVariant() {
         A nodeDrawingFunction uses the node &quot;shape&quot; property to draw circles, diamonds, and hexagons.
       </div>
       <div className="network-container">
-        <RevisNetwork graph={shapeData} nodeDrawingFunction={nodeDrawing} onMouse={onMouse} />
+        <NetiPlotReact graph={shapeData} nodeDrawingFunction={nodeDrawing} onMouse={onMouse} />
       </div>
     </>
   );
@@ -115,7 +115,7 @@ function ColorsVariant() {
         Style added to the nodes and edges can provide color and line options.
       </div>
       <div className="network-container">
-        <RevisNetwork graph={shapeColorData} nodeDrawingFunction={nodeDrawing} onMouse={onMouse} />
+        <NetiPlotReact graph={shapeColorData} nodeDrawingFunction={nodeDrawing} onMouse={onMouse} />
       </div>
     </>
   );
@@ -128,7 +128,7 @@ function IconsVariant() {
         SVG or raster images as icons, with innerLabel props for text inside nodes.
       </div>
       <div className="network-container">
-        <RevisNetwork
+        <NetiPlotReact
           graph={shapeIconData}
           nodeDrawingFunction={nodeDrawing}
           images={images}

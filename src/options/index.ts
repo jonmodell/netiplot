@@ -1,6 +1,6 @@
-import { RevisOptions } from '../types';
+import { NetiPlotOptions } from '../types';
 
-const options: RevisOptions = {
+const options: NetiPlotOptions = {
   nodes: {
     showLabels: true,
     defaultSize: 30,

@@ -1,25 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
+    "target": "ES2020",
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [{ "name": "next" }],
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
     "paths": {
-      "@jonmodell/netiplot": ["../src/index.ts"],
-      "@jonmodell/netiplot/*": ["../src/*"],
-      "@/*": ["./src/*"]
+      "@jonmodell/netiplot/vanilla": ["../lib/vanilla.d.ts"],
+      "@jonmodell/netiplot": ["../lib/index.d.ts"],
+      "@examples/*": ["../demo-react/src/examples/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src"]
 }

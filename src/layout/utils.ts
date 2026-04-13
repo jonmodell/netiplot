@@ -1,4 +1,4 @@
-import { RevisEdge, RevisNode } from "../components";
+import { NetiPlotEdge, NetiPlotNode } from "../components";
 
 export const compareByParentChild = (a: any, b: any) => {
   const aVal = a.isParent && !a.isChild ? 1 : 0;

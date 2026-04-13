@@ -15,7 +15,7 @@ export function drawText(
   ctx.fillText(fitText, 0, 0);
 }
 
-interface RevisImageDefinition {
+interface NetiPlotImageDefinition {
   image?: any;
   img?: any;
   x?: number;
@@ -29,8 +29,8 @@ interface RevisImageDefinition {
 }
 export function drawImage(
   ctx: CanvasRenderingContext2D,
-  definition: RevisImageDefinition,
-  images: { [x: string]: RevisImageDefinition },
+  definition: NetiPlotImageDefinition,
+  images: { [x: string]: NetiPlotImageDefinition },
   size: number
 ) {
   if (definition.image || definition.img) {

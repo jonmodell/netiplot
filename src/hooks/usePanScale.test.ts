@@ -1,6 +1,6 @@
 import { initialPanScaleState } from './usePanScale';
 import type { PanScaleAction } from './usePanScale';
-import type { PanScaleState, Bounds, RevisScreen } from '../types';
+import type { PanScaleState, Bounds, NetiPlotScreen } from '../types';
 
 // Test the reducer directly by importing it — it's not exported, so we test
 // it through the initial state + dispatch shapes that mirror the reducer logic.
@@ -13,7 +13,7 @@ import type { PanScaleState, Bounds, RevisScreen } from '../types';
 import { renderHook, act } from '@testing-library/react';
 import { usePanScale } from './usePanScale';
 
-const defaultScreen: RevisScreen = {
+const defaultScreen: NetiPlotScreen = {
   width: 800, height: 600, ratio: 1,
   boundingRect: { left: 0, top: 0, width: 800, height: 600, right: 800, bottom: 600, x: 0, y: 0, toJSON: () => ({}) } as DOMRect,
 };

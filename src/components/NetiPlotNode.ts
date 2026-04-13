@@ -1,4 +1,4 @@
-import { RevisNodeDefinition, RevisOptions } from '../types';
+import { NetiPlotNodeDefinition, NetiPlotOptions } from '../types';
 import { drawText, drawImage } from './util';
 
 const DEFAULT_STYLE: Record<string, any> = {
@@ -24,7 +24,7 @@ kept in the implementation - a list of selected, faded, etc... to figure out the
 
 class Node {
   id: string;
-  definition: RevisNodeDefinition;
+  definition: NetiPlotNodeDefinition;
   size: number = NODE_SIZE;
   bSize: number;
   mass: number = 1;
@@ -34,7 +34,7 @@ class Node {
   destination: { x: number; y: number } | null;
   delete: boolean = false;
 
-  constructor(id: string | number, definition: RevisNodeDefinition, options: RevisOptions) {
+  constructor(id: string | number, definition: NetiPlotNodeDefinition, options: NetiPlotOptions) {
     this.id = id.toString();
 
     // definition can be set from the outside, and it can change
@@ -56,14 +56,14 @@ class Node {
     this.delete = true;
   }
 
-  update(definition: RevisNodeDefinition) {
+  update(definition: NetiPlotNodeDefinition) {
     this.definition = definition;
     if (definition.fixed === false) {
       this.fixed = false;
     }
   }
 
-  render(state: any, context: CanvasRenderingContext2D, images: {}, drawingFunction: Function) {
+  render(state: any, context: CanvasRenderingContext2D, images: {}, drawingFunction: Function | null) {
     const hovering = state.rolloverItem === this;
     const { destination } = this;
     const style = { ...DEFAULT_STYLE, ...this.definition.style };
@@ -193,4 +193,4 @@ class Node {
   }
 }
 
-export { Node, Node as RevisNode }
+export { Node, Node as NetiPlotNode }

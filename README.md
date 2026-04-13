@@ -1,6 +1,6 @@
 # @jonmodell/netiplot
 
-A React canvas-based network/graph visualization library. Render interactive node-edge graphs on layered HTML5 canvases with pan, zoom, drag, hover, and shape editing — with zero runtime dependencies.
+A canvas-based network/graph visualization library with React and vanilla JS support. Render interactive node-edge graphs on layered HTML5 canvases with pan, zoom, drag, hover, and shape editing — with zero runtime dependencies.
 
 ## Install
 
@@ -8,45 +8,63 @@ A React canvas-based network/graph visualization library. Render interactive nod
 npm install @jonmodell/netiplot
 ```
 
-## Basic Usage
+## Usage
+
+### Vanilla JS
+
+```ts
+import { NetiPlot } from '@jonmodell/netiplot/vanilla';
+import type { NetiPlotGraph } from '@jonmodell/netiplot';
+
+const graph: NetiPlotGraph = {
+  nodes: [{ id: 'a', label: 'Node A' }, { id: 'b', label: 'Node B' }],
+  edges: [{ id: 'e1', from: 'a', to: 'b' }],
+};
+
+const net = new NetiPlot(document.getElementById('container')!, {
+  graph,
+  onMouse: (type, item) => console.log(type, item),
+});
+
+// Update the graph at any time:
+net.setGraph(updatedGraph);
+net.zoom('all');
+net.destroy();
+```
+
+### React
 
 ```tsx
-import { RevisNetwork } from '@jonmodell/netiplot';
-import type { RevisGraph } from '@jonmodell/netiplot';
+import { NetiPlotReact } from '@jonmodell/netiplot';
+import type { NetiPlotGraph } from '@jonmodell/netiplot';
 
-const graph: RevisGraph = {
-  nodes: [
-    { id: 'a', label: 'Node A' },
-    { id: 'b', label: 'Node B' },
-  ],
-  edges: [
-    { id: 'e1', from: 'a', to: 'b' },
-  ],
+const graph: NetiPlotGraph = {
+  nodes: [{ id: 'a', label: 'Node A' }, { id: 'b', label: 'Node B' }],
+  edges: [{ id: 'e1', from: 'a', to: 'b' }],
 };
 
 export default function App() {
-  return <RevisNetwork graph={graph} />;
+  return <NetiPlotReact graph={graph} />;
 }
 ```
 
-## Props
+## React Props
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `graph` | `RevisGraph` | Required. `{ nodes: RevisNodeDefinition[], edges: RevisEdgeDefinition[] }` |
-| `shapes` | `RevisShapeDefinition[]` | Background shapes rendered below the graph |
-| `options` | `RevisOptions` | Configuration for nodes, edges, camera, layout, hover, and interaction |
-| `images` | `RevisImageMap` | Map of image IDs to image elements for node icons |
-| `layouter` | `RevisLayouter` | Custom layout function (e.g. d3-force, dagre). Defaults to hierarchical. |
+| `graph` | `NetiPlotGraph` | Required. `{ nodes: NetiPlotNodeDefinition[], edges: NetiPlotEdgeDefinition[] }` |
+| `shapes` | `NetiPlotShapeDefinition[]` | Background shapes rendered below the graph |
+| `options` | `NetiPlotOptions` | Configuration for nodes, edges, camera, layout, hover, and interaction |
+| `images` | `NetiPlotImageMap` | Map of image IDs to image elements for node icons |
+| `layouter` | `NetiPlotLayouter` | Custom layout function (e.g. d3-force, dagre). Defaults to hierarchical. |
 | `shouldRunLayouter` | `ShouldRunLayouter` | Predicate controlling when the layouter re-runs on data changes |
 | `nodeDrawingFunction` | `NodeDrawingFunction` | Custom canvas drawing function for nodes |
 | `shapeDrawingFunction` | `ShapeDrawingFunction` | Custom canvas drawing function for shapes |
-| `onMouse` | `RevisMouseHandler` | Mouse event callback |
-| `callbackFn` | `(data: RevisCallbackData) => void` | Provides programmatic access to the network (positions, camera, fit) |
+| `onMouse` | `NetiPlotMouseHandler` | Mouse event callback |
+| `callbackFn` | `(data: NetiPlotCallbackData) => void` | Provides programmatic access to the network (positions, camera, fit) |
 | `customControls` | `(data: CustomControlsData) => ReactNode \| null` | Replace or hide the built-in zoom controls |
 | `className` | `string` | CSS class for the container |
 | `identifier` | `string` | Unique ID for the instance |
-| `debug` | `boolean` | Enable debug mode |
 
 ## Nodes
 
@@ -58,7 +76,7 @@ At minimum, nodes require a unique `id`. Supported properties:
   label?: string;      // text label rendered with the node
   innerLabel?: string; // label inside the node shape
   image?: string;      // key into the `images` prop map
-  shape?: string;      // 'circle' | 'square' | 'diamond' | 'hexagon'
+  shape?: string;      // passed to nodeDrawingFunction
   size?: number;
   fixed?: boolean;     // exclude from layout
   x?: number;          // manual position
@@ -93,11 +111,11 @@ Custom properties can be added freely and accessed in a `nodeDrawingFunction`.
 
 ## Shapes
 
-Background shapes rendered on the lowest canvas layer. Useful for grouping or annotating regions of the graph.
+Background shapes rendered on the lowest canvas layer, useful for grouping or annotating regions of the graph.
 
 ```ts
 {
-  shape: string;   // required: 'circle' | 'square' | 'diamond' | 'hexagon' | etc.
+  shape: string;   // required
   x: number;       // required
   y: number;       // required
   width?: number;
@@ -129,41 +147,49 @@ onMouse={(type, item, event) => {
 
 ## Hover Tooltip
 
-Pass a renderer via `options.hover` to show a React component on node or edge hover:
+### React — pass a renderer via `options.hover`:
 
 ```tsx
 options={{
   hover: {
     nodeRenderer: (node) => <div>{node.label}</div>,
     edgeRenderer: (edge) => <div>{edge.label}</div>,
-    delay: 300,   // ms
+    delay: 300,
     width: 200,
     height: 100,
   }
 }}
 ```
 
-## Images / Node Icons
+### Vanilla — use the `hover` config (returns `HTMLElement | string`):
 
-Supply a map of image entries to the `images` prop and reference them by key in node definitions:
+```ts
+new NetiPlot(el, {
+  graph,
+  hover: {
+    nodeRenderer: (node) => `<b>${node.label}</b>`,
+    delay: 300,
+  },
+});
+```
+
+## Images / Node Icons
 
 ```ts
 const images = {
   server: { element: imgElement, scale: 0.5, offsetX: 0, offsetY: 0 },
 };
 
-// then on a node:
+// reference by key on any node:
 { id: 'n1', image: 'server' }
 ```
 
 ## Custom Layout
 
-Pass any function matching the `RevisLayouter` signature:
-
 ```ts
-import type { RevisLayouter } from '@jonmodell/netiplot';
+import type { NetiPlotLayouter } from '@jonmodell/netiplot';
 
-const myLayouter: RevisLayouter = (data, options, screen, onStopped) => {
+const myLayouter: NetiPlotLayouter = (data, options, screen, onStopped) => {
   const { nodeMap } = data;
   // position nodes by setting node.destination = { x, y }
   onStopped?.();
@@ -179,19 +205,18 @@ options={{
   nodes: {
     showLabels: true,
     defaultSize: 30,
-    nodeFillStyle: '#4a90e2',
   },
   edges: {
     showLabels: false,
     arrowheads: true,
-    lineStyle: 'solid',
+    lineStyle: 'curved', // 'curved' | 'straight'
   },
   layoutOptions: {
     fitOnUpdate: true,
   },
   interaction: {
     allowGraphInteraction: true,
-    allowShapeInteraction: true,
+    allowShapeInteraction: false,
   },
 }}
 ```
@@ -199,8 +224,9 @@ options={{
 ## Development
 
 ```bash
-npm install       # install dependencies
-npm run dev       # start demo app
-npm test          # run tests
-npm run build     # build library to lib/
+npm install
+npm run dev          # vanilla demo (demo/)
+npm run dev:react    # React/Next.js demo (demo-react/)
+npm test
+npm run build        # builds lib/ (React + vanilla entry points)
 ```
