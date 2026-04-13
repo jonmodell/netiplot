@@ -7,7 +7,10 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [
     react(),
-    dts({ insertTypesEntry: true }),
+    dts({
+      insertTypesEntry: true,
+      exclude: ['**/*.test.ts', '**/*.test.tsx'],
+    }),
   ],
   build: {
     lib: {
