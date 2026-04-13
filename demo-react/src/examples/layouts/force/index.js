@@ -11,7 +11,7 @@ import {
 } from 'd3-force';
 
 /**
-A layout is a function that takes a set of RevisDataset data and manipulates through it's 
+A layout is a function that takes a set of NetiPlot data and manipulates through it's 
 own defined logic.  Said logic can be based upon arbitrary options, also passed in.
 The third parameter, screen, allows for inspection of the screen size
 **/

@@ -4,9 +4,9 @@ import { defaultLayout } from './layout';
 import { defaultOptions } from './options';
 import { Renderer } from './Renderer';
 import { NetiplotEngine } from './core/NetiplotEngine';
-import { RevisNetworkProps } from './types';
+import { NetiPlotProps } from './types';
 
-const RevisNetworkBase = (props: RevisNetworkProps) => {
+const NetiPlotReactBase = (props: NetiPlotProps) => {
   const {
     callbackFn,
     className,
@@ -123,5 +123,5 @@ const RevisNetworkBase = (props: RevisNetworkProps) => {
   );
 };
 
-const RevisNetwork = memo(RevisNetworkBase);
-export { RevisNetwork };
+const NetiPlotReact = memo(NetiPlotReactBase);
+export { NetiPlotReact };

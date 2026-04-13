@@ -2,14 +2,14 @@ import { inViewPort } from '../util';
 import type {
   PanScaleState,
   InteractionState,
-  RevisOptions,
-  RevisScreen,
-  RevisShapeDefinition,
+  NetiPlotOptions,
+  NetiPlotScreen,
+  NetiPlotShapeDefinition,
   NodeDrawingFunction,
   ShapeDrawingFunction,
-  RevisImageMap,
+  NetiPlotImageMap,
 } from '../types';
-import type { RevisNode, RevisEdge } from '../components';
+import type { NetiPlotNode, NetiPlotEdge } from '../components';
 
 const MS_PER_RENDER = 30;
 
@@ -28,13 +28,13 @@ const DEFAULT_SHAPE_STYLE = {
 export interface RenderState {
   panScale: PanScaleState;
   interaction: InteractionState;
-  nodes: Map<string, RevisNode>;
-  edges: Map<string, RevisEdge>;
-  shapes: RevisShapeDefinition[];
-  screen: RevisScreen;
-  options: RevisOptions;
-  rollover: RevisNode | RevisEdge | null;
-  images: RevisImageMap;
+  nodes: Map<string, NetiPlotNode>;
+  edges: Map<string, NetiPlotEdge>;
+  shapes: NetiPlotShapeDefinition[];
+  screen: NetiPlotScreen;
+  options: NetiPlotOptions;
+  rollover: NetiPlotNode | NetiPlotEdge | null;
+  images: NetiPlotImageMap;
   nodeDrawingFunction?: NodeDrawingFunction;
   shapeDrawingFunction?: ShapeDrawingFunction;
 }
@@ -69,7 +69,7 @@ export function drawShapes(
   ctx.save();
   ctx.clearRect(0, 0, width as number, height as number);
   ctx.transform(scale, 0, 0, scale, pan.x, pan.y);
-  shapes.forEach((i: RevisShapeDefinition) => {
+  shapes.forEach((i: NetiPlotShapeDefinition) => {
     if (i.visible !== false) {
       const style = { ...DEFAULT_SHAPE_STYLE, ...(i.style || {}) };
       ctx.save();
@@ -111,7 +111,7 @@ export function drawShapes(
  * off-screen items; pass `cull: false` for edges (always draw all).
  */
 export function drawObjects(
-  items: IterableIterator<RevisNode | RevisEdge>,
+  items: IterableIterator<NetiPlotNode | NetiPlotEdge>,
   canvas: HTMLCanvasElement,
   state: RenderState,
   drawingFunction: NodeDrawingFunction | null,
@@ -139,7 +139,7 @@ export function drawObjects(
   for (const item of items) {
     if (
       item.render !== undefined &&
-      (!cull || (item as RevisNode).destination || inViewPort(item as RevisNode, viewPort))
+      (!cull || (item as NetiPlotNode).destination || inViewPort(item as NetiPlotNode, viewPort))
     ) {
       item.render(st, ctx, images, drawingFunction);
     }

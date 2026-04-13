@@ -1,8 +1,8 @@
 import { panScaleReducer, initialPanScaleState } from './panScaleState';
 import type { PanScaleAction } from './panScaleState';
-import type { PanScaleState, Bounds, RevisScreen } from '../types';
+import type { PanScaleState, Bounds, NetiPlotScreen } from '../types';
 
-const defaultScreen: RevisScreen = {
+const defaultScreen: NetiPlotScreen = {
   width: 800,
   height: 600,
   ratio: 1,

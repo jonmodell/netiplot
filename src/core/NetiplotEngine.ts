@@ -19,28 +19,28 @@ import {
 } from '../util';
 import { defaultLayout } from '../layout';
 import { defaultOptions } from '../options';
-import { RevisNode, RevisEdge } from '../components';
+import { NetiPlotNode, NetiPlotEdge } from '../components';
 import { panScaleReducer, initialPanScaleState } from './panScaleState';
 import { interactionReducer, initialInteraction } from './interactionState';
 import type { PanScaleAction } from './panScaleState';
 import type { InteractionAction } from './interactionState';
 import type {
-  RevisGraph,
-  RevisShapeDefinition,
-  RevisNodeDefinition,
-  RevisEdgeDefinition,
-  RevisLayouterResult,
-  RevisOptions,
-  RevisScreen,
+  NetiPlotGraph,
+  NetiPlotShapeDefinition,
+  NetiPlotNodeDefinition,
+  NetiPlotEdgeDefinition,
+  NetiPlotLayouterResult,
+  NetiPlotOptions,
+  NetiPlotScreen,
   PanScaleState,
   InteractionState,
   HoverState,
-  RevisLayouter,
+  NetiPlotLayouter,
   ShouldRunLayouter,
-  RevisMouseHandler,
+  NetiPlotMouseHandler,
   NodeDrawingFunction,
   ShapeDrawingFunction,
-  RevisImageMap,
+  NetiPlotImageMap,
 } from '../types';
 
 interface MousePayload {
@@ -50,15 +50,15 @@ interface MousePayload {
 }
 
 export interface NetiplotEngineConfig {
-  graph: RevisGraph;
-  options?: RevisOptions;
-  shapes?: RevisShapeDefinition[];
-  layouter?: RevisLayouter;
+  graph: NetiPlotGraph;
+  options?: NetiPlotOptions;
+  shapes?: NetiPlotShapeDefinition[];
+  layouter?: NetiPlotLayouter;
   shouldRunLayouter?: ShouldRunLayouter;
-  onMouse?: RevisMouseHandler;
+  onMouse?: NetiPlotMouseHandler;
   nodeDrawingFunction?: NodeDrawingFunction;
   shapeDrawingFunction?: ShapeDrawingFunction;
-  images?: RevisImageMap;
+  images?: NetiPlotImageMap;
   identifier?: string;
 }
 
@@ -66,43 +66,43 @@ export interface NetiplotEngineState {
   panScale: PanScaleState;
   interaction: InteractionState;
   hover: HoverState;
-  options: RevisOptions;
-  screen: RevisScreen;
-  nodes: Map<string, RevisNode>;
-  edges: Map<string, RevisEdge>;
-  shapes: RevisShapeDefinition[];
-  rollover: RevisNode | RevisEdge | null;
+  options: NetiPlotOptions;
+  screen: NetiPlotScreen;
+  nodes: Map<string, NetiPlotNode>;
+  edges: Map<string, NetiPlotEdge>;
+  shapes: NetiPlotShapeDefinition[];
+  rollover: NetiPlotNode | NetiPlotEdge | null;
   keyAction: string | null;
   nodeDrawingFunction?: NodeDrawingFunction;
   shapeDrawingFunction?: ShapeDrawingFunction;
-  images: RevisImageMap;
+  images: NetiPlotImageMap;
 }
 
 export class NetiplotEngine {
   private panScale: PanScaleState = { ...initialPanScaleState };
   private interaction: InteractionState = { ...initialInteraction };
   private hover: HoverState = { item: null, itemType: null };
-  private options: RevisOptions;
-  private screen: RevisScreen = { width: 0, height: 0, ratio: 1, boundingRect: null };
+  private options: NetiPlotOptions;
+  private screen: NetiPlotScreen = { width: 0, height: 0, ratio: 1, boundingRect: null };
 
-  readonly nodes: Map<string, RevisNode> = new Map();
-  readonly edges: Map<string, RevisEdge> = new Map();
-  private shapes: RevisShapeDefinition[];
-  private rollover: RevisNode | RevisEdge | null = null;
+  readonly nodes: Map<string, NetiPlotNode> = new Map();
+  readonly edges: Map<string, NetiPlotEdge> = new Map();
+  private shapes: NetiPlotShapeDefinition[];
+  private rollover: NetiPlotNode | NetiPlotEdge | null = null;
   private keyAction: string | null = null;
 
   private canvas: HTMLCanvasElement | null = null;
   private hoverTimer: ReturnType<typeof setTimeout> | null = null;
-  private lastLayouterResult: RevisLayouterResult = null;
-  private lastLayoutOptions: RevisOptions['layoutOptions'] = {};
+  private lastLayouterResult: NetiPlotLayouterResult = null;
+  private lastLayoutOptions: NetiPlotOptions['layoutOptions'] = {};
 
-  private layouter: RevisLayouter;
+  private layouter: NetiPlotLayouter;
   private shouldRunLayouter?: ShouldRunLayouter;
-  private onMouse?: RevisMouseHandler;
+  private onMouse?: NetiPlotMouseHandler;
 
   readonly nodeDrawingFunction?: NodeDrawingFunction;
   readonly shapeDrawingFunction?: ShapeDrawingFunction;
-  readonly images: RevisImageMap;
+  readonly images: NetiPlotImageMap;
   readonly uid: string;
 
   private listeners = new Set<() => void>();
@@ -182,7 +182,7 @@ export class NetiplotEngine {
     return getNodePositions(this.nodes);
   }
 
-  private getLiveScreen(): RevisScreen {
+  private getLiveScreen(): NetiPlotScreen {
     return {
       width: this.canvas?.clientWidth,
       height: this.canvas?.clientHeight,
@@ -216,7 +216,7 @@ export class NetiplotEngine {
   }
 
   private setShowHover(
-    item: RevisNodeDefinition | RevisEdgeDefinition,
+    item: NetiPlotNodeDefinition | NetiPlotEdgeDefinition,
     itemType: string,
     pos: { x: number; y: number }
   ): void {
@@ -275,7 +275,7 @@ export class NetiplotEngine {
       switch (eventType) {
         case 'down': {
           const { pos, ctrlClick, e } = payload;
-          const draggedNodes = new Set<RevisNodeDefinition>(ctrlClick ? iSt.draggedNodes : []);
+          const draggedNodes = new Set<NetiPlotNodeDefinition>(ctrlClick ? iSt.draggedNodes : []);
           const n = getNodeAtPosition(this.nodes, pos);
           const ed = getEdgeAtPosition(this.edges, pos, this.options.edges);
           if (n) {
@@ -311,7 +311,7 @@ export class NetiplotEngine {
               x: pos.x - Number(lastNode.x),
               y: pos.y - Number(lastNode.y),
             };
-            iSt.draggedNodes.forEach((n: RevisNodeDefinition) => {
+            iSt.draggedNodes.forEach((n: NetiPlotNodeDefinition) => {
               n.x = (n.x || 0) + delta.x;
               n.y = (n.y || 0) + delta.y;
               n.fixed = true;
@@ -530,7 +530,7 @@ export class NetiplotEngine {
   private edgePan(): void {
     const { panPerFrame } = this.panScale;
     if (!panPerFrame) return;
-    this.interaction.draggedNodes.forEach((n: RevisNodeDefinition) => {
+    this.interaction.draggedNodes.forEach((n: NetiPlotNodeDefinition) => {
       n.x = (n.x || 0) - panPerFrame.x;
       n.y = (n.y || 0) - panPerFrame.y;
     });
@@ -559,27 +559,27 @@ export class NetiplotEngine {
 
   // ── Graph sync ────────────────────────────────────────────────────────────
 
-  setGraph(graph: RevisGraph, shapes?: RevisShapeDefinition[]): void {
+  setGraph(graph: NetiPlotGraph, shapes?: NetiPlotShapeDefinition[]): void {
     this.syncGraph(graph, shapes);
   }
 
-  private syncGraph(graph: RevisGraph, nextShapes?: RevisShapeDefinition[]): void {
-    type VisualClassType = typeof RevisNode | typeof RevisEdge;
+  private syncGraph(graph: NetiPlotGraph, nextShapes?: NetiPlotShapeDefinition[]): void {
+    type VisualClassType = typeof NetiPlotNode | typeof NetiPlotEdge;
 
     const setGraphType = (
-      gType: RevisNodeDefinition[] | RevisEdgeDefinition[],
-      mType: Map<string, RevisNode> | Map<string, RevisEdge>,
+      gType: NetiPlotNodeDefinition[] | NetiPlotEdgeDefinition[],
+      mType: Map<string, NetiPlotNode> | Map<string, NetiPlotEdge>,
       VisualClass: VisualClassType
     ): boolean => {
       let dirty = false;
       const dupMap: Record<string, number> = {};
       gType.forEach((n) => {
         const has = mType.has(n.id);
-        const existing = mType.get(n.id) as RevisNode | RevisEdge | undefined;
+        const existing = mType.get(n.id) as NetiPlotNode | NetiPlotEdge | undefined;
         const diff = has && existing && existing.definition !== n;
         if (!has || diff) {
-          if (VisualClass === RevisEdge) {
-            const edgeDef = n as RevisEdgeDefinition;
+          if (VisualClass === NetiPlotEdge) {
+            const edgeDef = n as NetiPlotEdgeDefinition;
             const to = edgeDef.to.toString();
             const from = edgeDef.from.toString();
             const toFrom = [to, from].sort().join('-');
@@ -590,9 +590,9 @@ export class NetiplotEngine {
             } else {
               dupMap[toFrom] = 0;
             }
-            (mType as Map<string, RevisEdge>).set(
+            (mType as Map<string, NetiPlotEdge>).set(
               n.id,
-              new RevisEdge(
+              new NetiPlotEdge(
                 n.id,
                 edgeDef,
                 this.nodes.get(to)!,
@@ -601,11 +601,11 @@ export class NetiplotEngine {
               )
             );
           } else if (has && existing) {
-            (existing as RevisNode).update(n as RevisNodeDefinition);
+            (existing as NetiPlotNode).update(n as NetiPlotNodeDefinition);
           } else {
-            (mType as Map<string, RevisNode>).set(
+            (mType as Map<string, NetiPlotNode>).set(
               n.id,
-              new RevisNode(n.id, n as RevisNodeDefinition, this.options)
+              new NetiPlotNode(n.id, n as NetiPlotNodeDefinition, this.options)
             );
           }
           dirty = dirty || !has;
@@ -633,8 +633,8 @@ export class NetiplotEngine {
         )
       : false;
 
-    const nodesDirty = setGraphType(graph.nodes, this.nodes, RevisNode);
-    const edgesDirty = setGraphType(graph.edges, this.edges, RevisEdge);
+    const nodesDirty = setGraphType(graph.nodes, this.nodes, NetiPlotNode);
+    const edgesDirty = setGraphType(graph.edges, this.edges, NetiPlotEdge);
 
     if (nextShapes !== undefined) {
       this.shapes = nextShapes;
@@ -648,7 +648,7 @@ export class NetiplotEngine {
     // No unconditional notify — only notify when state actually changed
   }
 
-  setOptions(options: RevisOptions): void {
+  setOptions(options: NetiPlotOptions): void {
     const merged = deepMerge({}, this.options, options);
     // Bail out if the effective options are unchanged — prevents infinite re-renders
     // when consumers pass an inline options object literal (new reference every render).
@@ -662,7 +662,7 @@ export class NetiplotEngine {
     this.notify();
   }
 
-  setLayouter(layouter: RevisLayouter): void {
+  setLayouter(layouter: NetiPlotLayouter): void {
     this.layouter = layouter;
     this.runLayout();
   }

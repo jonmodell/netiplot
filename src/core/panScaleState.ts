@@ -1,4 +1,4 @@
-import { PanScaleState, Bounds, RevisScreen } from '../types';
+import { PanScaleState, Bounds, NetiPlotScreen } from '../types';
 
 export const initialPanScaleState: PanScaleState = {
   destinationScale: null,
@@ -15,11 +15,11 @@ export type PanScaleAction =
   | { type: 'keyAction'; payload: string }
   | { type: 'pan'; payload: { x: number; y: number } }
   | { type: 'set'; payload: PanScaleState }
-  | { type: 'zoomIn'; payload: { screen: RevisScreen; bounds: Bounds } }
-  | { type: 'zoomOut'; payload: { screen: RevisScreen; newScale: number; bounds: Bounds } }
+  | { type: 'zoomIn'; payload: { screen: NetiPlotScreen; bounds: Bounds } }
+  | { type: 'zoomOut'; payload: { screen: NetiPlotScreen; newScale: number; bounds: Bounds } }
   | { type: 'zoomPanimate' }
-  | { type: 'zoomSelection'; payload: { screen: RevisScreen; dn: { x: number; y: number } } }
-  | { type: 'zoomToPoint'; payload: { pos: { x: number; y: number }; screen: RevisScreen } };
+  | { type: 'zoomSelection'; payload: { screen: NetiPlotScreen; dn: { x: number; y: number } } }
+  | { type: 'zoomToPoint'; payload: { pos: { x: number; y: number }; screen: NetiPlotScreen } };
 
 const KEY_PAN_FACTOR = 10;
 const SCALE_FACTOR = 0.5;

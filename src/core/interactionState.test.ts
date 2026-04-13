@@ -1,8 +1,8 @@
 import { interactionReducer, initialInteraction } from './interactionState';
 import type { InteractionAction } from './interactionState';
-import type { InteractionState, RevisShapeDefinition } from '../types';
+import type { InteractionState, NetiPlotShapeDefinition } from '../types';
 
-const shape: RevisShapeDefinition = { shape: 'rect', x: 0, y: 0, width: 50, height: 50 };
+const shape: NetiPlotShapeDefinition = { shape: 'rect', x: 0, y: 0, width: 50, height: 50 };
 const nodeDef = { id: 'n1', x: 10, y: 20 };
 
 function reduce(state: InteractionState, action: InteractionAction): InteractionState {

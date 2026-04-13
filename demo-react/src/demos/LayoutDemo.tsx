@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { RevisNetwork } from '@jonmodell/netiplot';
+import { useState } from 'react';
+import { NetiPlotReact } from '@jonmodell/netiplot';
 import randomData from '@/examples/data/random';
 import images from '@/examples/data/images';
 import hierarchical from '@/examples/layouts/hierarchical';
@@ -57,7 +57,7 @@ function HierarchyVariant() {
         </label>
       </div>
       <div className="network-container">
-        <RevisNetwork
+        <NetiPlotReact
           graph={graph100}
           onMouse={onMouse}
           images={images}
@@ -100,7 +100,7 @@ function MultiParentVariant() {
         </label>
       </div>
       <div className="network-container">
-        <RevisNetwork
+        <NetiPlotReact
           graph={graph100}
           onMouse={onMouse}
           images={images}
@@ -145,7 +145,7 @@ function D3ForceVariant() {
         </label>
       </div>
       <div className="network-container">
-        <RevisNetwork
+        <NetiPlotReact
           graph={graph100}
           onMouse={onMouse}
           images={images}
@@ -180,7 +180,7 @@ function TieredVariant() {
         </label>
       </div>
       <div className="network-container">
-        <RevisNetwork
+        <NetiPlotReact
           graph={graph50}
           onMouse={onMouse}
           images={images}

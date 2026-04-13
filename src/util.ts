@@ -1,5 +1,5 @@
-import { RevisNode, RevisEdge } from "./components";
-import { Bounds, PanScaleState, RevisEdgeOptions, RevisNodeDefinition, RevisOptions, RevisScreen, RevisShapeDefinition } from "./types";
+import { NetiPlotNode, NetiPlotEdge } from "./components";
+import { Bounds, PanScaleState, NetiPlotEdgeOptions, NetiPlotNodeDefinition, NetiPlotOptions, NetiPlotScreen, NetiPlotShapeDefinition } from "./types";
 
 const SCREEN_PAN_MARGIN = 35;
 const ZOOM_FACTOR = 0.002;
@@ -7,8 +7,8 @@ const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 6;
 
 // if we are dragging off screen, pan with the edges of the screen
-// the screenSettings.screenPan setting changes the pan by that amount during the ReVisNetwork.draw function
-export function getScreenEdgePan(sc: RevisScreen, e: { clientX: number; clientY: number }) {
+// the screenSettings.screenPan setting changes the pan by that amount during the NetiPlot.draw function
+export function getScreenEdgePan(sc: NetiPlotScreen, e: { clientX: number; clientY: number }) {
   const br = sc.boundingRect;
   if (!br) return null;
   const d = SCREEN_PAN_MARGIN;
@@ -36,7 +36,7 @@ export function getNodeScreenPos(n: { x: number; y: number }, tracking: PanScale
 }
 
 // figure out if a hover window should go left, right, above or below based on screen position
-export function getHoverPos(pos: { x: number; y: number }, screen: RevisScreen, panScaleState: PanScaleState, opts: RevisOptions) {
+export function getHoverPos(pos: { x: number; y: number }, screen: NetiPlotScreen, panScaleState: PanScaleState, opts: NetiPlotOptions) {
   const nodeSize = opts.nodes?.defaultSize || 30;
   const { width, height } = screen.boundingRect || { width: 0, height: 0 };
   const { scale } = panScaleState;
@@ -63,7 +63,7 @@ export function checkNodeAtPosition(node: { bSize: number; x: number; y: number;
 }
 
 // looks through the dataset and returns a node at a given mouse position if there is one
-export function getNodeAtPosition(nodes: Map<string, RevisNode>, pos: { x: number; y: number }) {
+export function getNodeAtPosition(nodes: Map<string, NetiPlotNode>, pos: { x: number; y: number }) {
   for (const node of nodes.values()) {
     if (checkNodeAtPosition(node, pos)) {
       return node;
@@ -73,7 +73,7 @@ export function getNodeAtPosition(nodes: Map<string, RevisNode>, pos: { x: numbe
 }
 
 // looks through the dataset and returns an edge at a given mouse position if there is one
-export function getEdgeAtPosition(edges: Map<string, RevisEdge>, pos: { x: number; y: number }, edgeOptions: RevisEdgeOptions | undefined) {
+export function getEdgeAtPosition(edges: Map<string, NetiPlotEdge>, pos: { x: number; y: number }, edgeOptions: NetiPlotEdgeOptions | undefined) {
   for (const edge of edges.values()) {
     const dist = edge.getDistanceFrom(pos, edgeOptions || {});
     if (dist !== null && dist < 10) {
@@ -83,7 +83,7 @@ export function getEdgeAtPosition(edges: Map<string, RevisEdge>, pos: { x: numbe
   return null;
 }
 
-export const getBounds = (nds: RevisNode[] = [], shps: RevisShapeDefinition[] = []): Bounds => {
+export const getBounds = (nds: NetiPlotNode[] = [], shps: NetiPlotShapeDefinition[] = []): Bounds => {
   const combined: Array<{ x: number; y: number; width?: number; height?: number; size?: number; destination?: { x: number; y: number } | null }> = [
     ...nds,
     ...shps.filter((s) => s && s.boundsIgnore === undefined),
@@ -108,7 +108,7 @@ export const getBounds = (nds: RevisNode[] = [], shps: RevisShapeDefinition[] = 
   return bds;
 };
 
-export const getBoundsScale = (height: number | undefined, width: number | undefined, bounds: Bounds, opts: RevisOptions) => {
+export const getBoundsScale = (height: number | undefined, width: number | undefined, bounds: Bounds, opts: NetiPlotOptions) => {
   const nodeSize = opts.nodes?.defaultSize || 30;
   const hf = (height as number) / ((bounds.height || 0) + nodeSize * 2);
   const wf = (width as number) / ((bounds.width || 0) + nodeSize * 2);
@@ -118,9 +118,9 @@ export const getBoundsScale = (height: number | undefined, width: number | undef
 export function getPanScaleFromMouseWheel(
   e: MouseEvent | WheelEvent,
   panScaleState: PanScaleState,
-  screen: RevisScreen,
+  screen: NetiPlotScreen,
   bounds: Bounds,
-  opts: RevisOptions,
+  opts: NetiPlotOptions,
 ) {
   const { scale, pan } = panScaleState;
   const { height, width, boundingRect } = screen;
@@ -149,7 +149,7 @@ export function getPanScaleFromMouseWheel(
   return { ...panScaleState, scale: newScale, pan: newPan };
 }
 
-export function getFitToScreen(bounds: Bounds, screen: RevisScreen, padding: number | { horizontal: number; vertical: number }, opts: RevisOptions) {
+export function getFitToScreen(bounds: Bounds, screen: NetiPlotScreen, padding: number | { horizontal: number; vertical: number }, opts: NetiPlotOptions) {
   if (!bounds) {
     return null;
   }
@@ -165,7 +165,7 @@ export function getFitToScreen(bounds: Bounds, screen: RevisScreen, padding: num
   return { scale, pan };
 }
 
-export const getMousePos = (e: MouseEvent, screen: RevisScreen, panZoomState: PanScaleState) => {
+export const getMousePos = (e: MouseEvent, screen: NetiPlotScreen, panZoomState: PanScaleState) => {
   const { boundingRect } = screen;
   const { scale, pan } = panZoomState;
   if (!boundingRect) {
@@ -177,7 +177,7 @@ export const getMousePos = (e: MouseEvent, screen: RevisScreen, panZoomState: Pa
   };
 };
 
-export const getNodePositions = (nodes: Map<string, RevisNode>) => {
+export const getNodePositions = (nodes: Map<string, NetiPlotNode>) => {
   const ret: Record<string, { x: number; y: number }> = {};
   for (const node of nodes.values()) {
     ret[node.id] = { x: node.x, y: node.y };
@@ -253,7 +253,7 @@ export function inViewPort(item: { x: number; y: number }, viewPort: { left: num
 const HANDLE_OFFSET = 8;
 const MIN_SHAPE_SIZE = 10;
 
-export function getHandleAtPos(item: RevisShapeDefinition, pos: { x: number; y: number }, scale: number) {
+export function getHandleAtPos(item: NetiPlotShapeDefinition, pos: { x: number; y: number }, scale: number) {
   const itemWidth = item.width || item.size || 0;
   const itemHeight = item.height || item.size || 0;
   const handleSize = HANDLE_OFFSET / scale;
@@ -279,7 +279,7 @@ export function getHandleAtPos(item: RevisShapeDefinition, pos: { x: number; y: 
   return handle ? handle.id : undefined;
 }
 
-export function setShapeByHandleDrag(si: RevisShapeDefinition, handle: string, delta: { x: number; y: number }, ctrl: boolean) {
+export function setShapeByHandleDrag(si: NetiPlotShapeDefinition, handle: string, delta: { x: number; y: number }, ctrl: boolean) {
   const ret: { x: number; y: number; width: number; height: number } = {
     x: si.x,
     y: si.y,

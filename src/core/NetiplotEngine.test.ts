@@ -1,7 +1,7 @@
 import { NetiplotEngine } from './NetiplotEngine';
-import type { RevisGraph, RevisLayouter } from '../types';
+import type { NetiPlotGraph, NetiPlotLayouter } from '../types';
 
-const graph: RevisGraph = {
+const graph: NetiPlotGraph = {
   nodes: [
     { id: 'a', x: 0, y: 0 },
     { id: 'b', x: 100, y: 100 },
@@ -9,7 +9,7 @@ const graph: RevisGraph = {
   edges: [{ id: 'e1', from: 'a', to: 'b' }],
 };
 
-const mockLayouter: jest.MockedFunction<RevisLayouter> = jest.fn(() => undefined);
+const mockLayouter: jest.MockedFunction<NetiPlotLayouter> = jest.fn(() => undefined);
 
 function createMockCanvas(width = 800, height = 600): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
@@ -399,7 +399,7 @@ describe('destroy', () => {
 
   it('stops a stoppable layout result on destroy', () => {
     const stop = jest.fn();
-    const stoppableLayouter: RevisLayouter = jest.fn(() => ({ stop }));
+    const stoppableLayouter: NetiPlotLayouter = jest.fn(() => ({ stop }));
     const engine = new NetiplotEngine({ graph, layouter: stoppableLayouter });
     engine.destroy();
     expect(stop).toHaveBeenCalled();

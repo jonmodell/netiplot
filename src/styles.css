@@ -1,4 +1,4 @@
-.revis-container {
+.netiplot-container {
   display: block;
   position: absolute;
   top: 0;
@@ -7,7 +7,7 @@
   right: 0;
 }
 
-.revis-container canvas {
+.netiplot-container canvas {
   display: block;
   position: absolute;
   top: 0;
@@ -19,15 +19,15 @@
   overflow: hidden;
 }
 
-.revis-container canvas:focus {
+.netiplot-container canvas:focus {
   outline: none;
 }
 
-.revis-container canvas.editing {
+.netiplot-container canvas.editing {
   background: rgba(250, 250, 250, 0.3);
 }
 
-.revis-container .controls {
+.netiplot-container .controls {
   display: block;
   position: absolute;
   top: 10px;
@@ -35,29 +35,29 @@
   width: 39px;
 }
 
-.revis-container .controls .control-button {
+.netiplot-container .controls .control-button {
   position: relative;
   height: 36px;
   width: 36px;
   opacity: 0.7;
 }
 
-.revis-container .controls .control-button:hover {
+.netiplot-container .controls .control-button:hover {
   opacity: 0.9;
 }
 
-.revis-container .controls button {
+.netiplot-container .controls button {
   background: none;
   padding: 0;
   margin: 1px 0;
   border: none;
 }
 
-.revis-container .controls button:focus {
+.netiplot-container .controls button:focus {
   outline: 0;
 }
 
-.revis-container .node-detail {
+.netiplot-container .node-detail {
   display: block;
   position: relative;
 }

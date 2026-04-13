@@ -73,7 +73,7 @@ const Renderer = (props: RendererProps) => {
   const { width, height } = screen;
 
   return (
-    <div ref={containerRef} className={`revis-container ${className || ''}`} key={uid.current}>
+    <div ref={containerRef} className={`netiplot-container ${className || ''}`} key={uid.current}>
       <>
         <canvas ref={shapesRef} width={width} height={height} tabIndex={-4} />
         <canvas ref={edgesRef} width={width} height={height} tabIndex={-3} />

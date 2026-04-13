@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
-import { RevisNetwork } from './RevisNetwork';
-import type { RevisGraph, RevisCallbackData, RevisOptions } from './types';
+import { NetiPlotReact } from './NetiPlotReact';
+import type { NetiPlotGraph, NetiPlotCallbackData, NetiPlotOptions } from './types';
 
 // ─── Canvas mock ─────────────────────────────────────────────────────────────
-// jsdom doesn't implement canvas — mock getContext so RevisNode/Edge don't crash
+// jsdom doesn't implement canvas — mock getContext so NetiPlotNode/Edge don't crash
 
 const ctxMock = {
   save: jest.fn(),
@@ -51,7 +51,7 @@ beforeAll(() => {
 
 // ─── Test data ────────────────────────────────────────────────────────────────
 
-const twoNodeGraph: RevisGraph = {
+const twoNodeGraph: NetiPlotGraph = {
   nodes: [
     { id: 'n1', x: 100, y: 100 },
     { id: 'n2', x: 200, y: 150 },
@@ -59,40 +59,40 @@ const twoNodeGraph: RevisGraph = {
   edges: [{ id: 'e1', from: 'n1', to: 'n2' }],
 };
 
-const emptyGraph: RevisGraph = { nodes: [], edges: [] };
+const emptyGraph: NetiPlotGraph = { nodes: [], edges: [] };
 
-const graphInteractionOptions: RevisOptions = {
+const graphInteractionOptions: NetiPlotOptions = {
   interaction: { allowGraphInteraction: true },
 };
 
 // ─── Basic rendering ─────────────────────────────────────────────────────────
 
-describe('RevisNetwork rendering', () => {
+describe('NetiPlotReact rendering', () => {
   it('renders without crashing with empty graph', () => {
-    render(<RevisNetwork graph={emptyGraph} />);
-    // Renderer wraps everything in .revis-container
-    expect(document.querySelector('.revis-container')).not.toBeNull();
+    render(<NetiPlotReact graph={emptyGraph} />);
+    // Renderer wraps everything in .netiplot-container
+    expect(document.querySelector('.netiplot-container')).not.toBeNull();
   });
 
   it('renders canvases', () => {
-    render(<RevisNetwork graph={twoNodeGraph} />);
+    render(<NetiPlotReact graph={twoNodeGraph} />);
     const canvases = document.querySelectorAll('canvas');
     expect(canvases.length).toBeGreaterThan(0);
   });
 
   it('renders zoom controls by default', () => {
-    render(<RevisNetwork graph={emptyGraph} />);
+    render(<NetiPlotReact graph={emptyGraph} />);
     expect(document.querySelector('.controls')).not.toBeNull();
   });
 
   it('hides zoom controls when customControls is null', () => {
-    render(<RevisNetwork graph={emptyGraph} customControls={null} />);
+    render(<NetiPlotReact graph={emptyGraph} customControls={null} />);
     expect(document.querySelector('.controls')).toBeNull();
   });
 
   it('renders custom zoom controls when provided', () => {
     render(
-      <RevisNetwork
+      <NetiPlotReact
         graph={emptyGraph}
         customControls={() => <div data-testid="my-controls">custom</div>}
       />
@@ -101,20 +101,20 @@ describe('RevisNetwork rendering', () => {
   });
 
   it('applies className to container', () => {
-    render(<RevisNetwork graph={emptyGraph} className="my-network" />);
-    const container = document.querySelector('.revis-container');
+    render(<NetiPlotReact graph={emptyGraph} className="my-network" />);
+    const container = document.querySelector('.netiplot-container');
     expect(container?.classList.contains('my-network')).toBe(true);
   });
 });
 
 // ─── callbackFn ──────────────────────────────────────────────────────────────
 
-describe('RevisNetwork callbackFn', () => {
+describe('NetiPlotReact callbackFn', () => {
   it('calls callbackFn with network API', () => {
     const callbackFn = jest.fn();
-    render(<RevisNetwork graph={twoNodeGraph} callbackFn={callbackFn} />);
+    render(<NetiPlotReact graph={twoNodeGraph} callbackFn={callbackFn} />);
     expect(callbackFn).toHaveBeenCalled();
-    const data: RevisCallbackData = callbackFn.mock.calls[0][0];
+    const data: NetiPlotCallbackData = callbackFn.mock.calls[0][0];
     expect(data).toHaveProperty('nodes');
     expect(data).toHaveProperty('getPositions');
     expect(data).toHaveProperty('getCamera');
@@ -123,8 +123,8 @@ describe('RevisNetwork callbackFn', () => {
 
   it('getPositions returns positions for each node', () => {
     const callbackFn = jest.fn();
-    render(<RevisNetwork graph={twoNodeGraph} callbackFn={callbackFn} />);
-    const data: RevisCallbackData = callbackFn.mock.calls[0][0];
+    render(<NetiPlotReact graph={twoNodeGraph} callbackFn={callbackFn} />);
+    const data: NetiPlotCallbackData = callbackFn.mock.calls[0][0];
     const positions = data.getPositions();
     expect(positions).toHaveProperty('n1');
     expect(positions).toHaveProperty('n2');
@@ -132,8 +132,8 @@ describe('RevisNetwork callbackFn', () => {
 
   it('getCamera returns a PanScaleState with scale and pan', () => {
     const callbackFn = jest.fn();
-    render(<RevisNetwork graph={twoNodeGraph} callbackFn={callbackFn} />);
-    const data: RevisCallbackData = callbackFn.mock.calls[0][0];
+    render(<NetiPlotReact graph={twoNodeGraph} callbackFn={callbackFn} />);
+    const data: NetiPlotCallbackData = callbackFn.mock.calls[0][0];
     const cam = data.getCamera();
     expect(cam).toHaveProperty('scale');
     expect(cam).toHaveProperty('pan');
@@ -142,11 +142,11 @@ describe('RevisNetwork callbackFn', () => {
 
 // ─── onMouse ─────────────────────────────────────────────────────────────────
 
-describe('RevisNetwork onMouse', () => {
+describe('NetiPlotReact onMouse', () => {
   it('fires backgroundClick when clicking background with graph interaction enabled', async () => {
     const onMouse = jest.fn();
     render(
-      <RevisNetwork
+      <NetiPlotReact
         graph={twoNodeGraph}
         onMouse={onMouse}
         options={graphInteractionOptions}
@@ -166,17 +166,17 @@ describe('RevisNetwork onMouse', () => {
 
 // ─── Graph updates ───────────────────────────────────────────────────────────
 
-describe('RevisNetwork graph updates', () => {
+describe('NetiPlotReact graph updates', () => {
   it('adds new nodes when graph prop changes', async () => {
     const callbackFn = jest.fn();
     const { rerender } = render(
-      <RevisNetwork graph={emptyGraph} callbackFn={callbackFn} />
+      <NetiPlotReact graph={emptyGraph} callbackFn={callbackFn} />
     );
     rerender(
-      <RevisNetwork graph={twoNodeGraph} callbackFn={callbackFn} />
+      <NetiPlotReact graph={twoNodeGraph} callbackFn={callbackFn} />
     );
     await waitFor(() => {
-      const lastCall = callbackFn.mock.calls[callbackFn.mock.calls.length - 1][0] as RevisCallbackData;
+      const lastCall = callbackFn.mock.calls[callbackFn.mock.calls.length - 1][0] as NetiPlotCallbackData;
       const positions = lastCall.getPositions();
       expect(positions).toHaveProperty('n1');
       expect(positions).toHaveProperty('n2');
@@ -186,17 +186,17 @@ describe('RevisNetwork graph updates', () => {
   it('removes nodes when they are dropped from the graph', async () => {
     const callbackFn = jest.fn();
     const { rerender } = render(
-      <RevisNetwork graph={twoNodeGraph} callbackFn={callbackFn} />
+      <NetiPlotReact graph={twoNodeGraph} callbackFn={callbackFn} />
     );
-    const oneNodeGraph: RevisGraph = {
+    const oneNodeGraph: NetiPlotGraph = {
       nodes: [{ id: 'n1', x: 100, y: 100 }],
       edges: [],
     };
     rerender(
-      <RevisNetwork graph={oneNodeGraph} callbackFn={callbackFn} />
+      <NetiPlotReact graph={oneNodeGraph} callbackFn={callbackFn} />
     );
     await waitFor(() => {
-      const lastCall = callbackFn.mock.calls[callbackFn.mock.calls.length - 1][0] as RevisCallbackData;
+      const lastCall = callbackFn.mock.calls[callbackFn.mock.calls.length - 1][0] as NetiPlotCallbackData;
       const positions = lastCall.getPositions();
       expect(positions).toHaveProperty('n1');
       expect(positions).not.toHaveProperty('n2');
@@ -206,10 +206,10 @@ describe('RevisNetwork graph updates', () => {
 
 // ─── identifier ──────────────────────────────────────────────────────────────
 
-describe('RevisNetwork identifier', () => {
+describe('NetiPlotReact identifier', () => {
   it('uses provided identifier as uid prefix area', () => {
-    render(<RevisNetwork graph={emptyGraph} identifier="test-net" />);
+    render(<NetiPlotReact graph={emptyGraph} identifier="test-net" />);
     // Component renders (no crash); uid is internal but container exists
-    expect(document.querySelector('.revis-container')).not.toBeNull();
+    expect(document.querySelector('.netiplot-container')).not.toBeNull();
   });
 });

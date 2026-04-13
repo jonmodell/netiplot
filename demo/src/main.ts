@@ -1,9 +1,9 @@
 import { Netiplot } from '@jonmodell/netiplot/vanilla';
 import type {
-  RevisGraph,
-  RevisNodeDefinition,
-  RevisEdgeDefinition,
-  RevisShapeDefinition,
+  NetiPlotGraph,
+  NetiPlotNodeDefinition,
+  NetiPlotEdgeDefinition,
+  NetiPlotShapeDefinition,
   NodeDrawingFunction,
 } from '@jonmodell/netiplot';
 
@@ -16,15 +16,15 @@ function setStatus(msg: string) {
   status.textContent = msg;
 }
 
-function randomGraph(nodeCount: number): RevisGraph {
+function randomGraph(nodeCount: number): NetiPlotGraph {
   const types = ['server', 'client', 'router', 'switch', 'gateway'];
-  const nodes: RevisNodeDefinition[] = Array.from({ length: nodeCount }, (_, i) => ({
+  const nodes: NetiPlotNodeDefinition[] = Array.from({ length: nodeCount }, (_, i) => ({
     id: `n${i}`,
     label: `Node ${i}`,
     type: types[i % types.length],
     value: Math.random(),
   }));
-  const edges: RevisEdgeDefinition[] = [];
+  const edges: NetiPlotEdgeDefinition[] = [];
   for (let i = 1; i < nodeCount; i++) {
     edges.push({ id: `e${i}`, from: `n${Math.floor(Math.random() * i)}`, to: `n${i}` });
   }
@@ -97,7 +97,7 @@ function makeNodeDrawer(style: string): NodeDrawingFunction {
 // ── Shape interaction graph ───────────────────────────────────────────────────
 
 function makeShapeGraph() {
-  const graph: RevisGraph = {
+  const graph: NetiPlotGraph = {
     nodes: [
       { id: 'a', label: 'Alpha', x: 100, y: 100 },
       { id: 'b', label: 'Beta',  x: 300, y: 200 },
@@ -109,7 +109,7 @@ function makeShapeGraph() {
       { id: 'e3', from: 'c', to: 'a' },
     ],
   };
-  const shapes: RevisShapeDefinition[] = [
+  const shapes: NetiPlotShapeDefinition[] = [
     { shape: 'rect', id: 's1', x: 50,  y: 50,  width: 200, height: 120,
       style: { fill: 'rgba(110,231,247,0.15)', stroke: '#6ee7f7', lineWidth: 1 } },
     { shape: 'rect', id: 's2', x: 250, y: 180, width: 180, height: 200,
@@ -120,7 +120,7 @@ function makeShapeGraph() {
 
 // ── Tooltip renderer ──────────────────────────────────────────────────────────
 
-function tooltipRenderer(node: RevisNodeDefinition): HTMLElement {
+function tooltipRenderer(node: NetiPlotNodeDefinition): HTMLElement {
   const el = document.createElement('div');
   el.innerHTML = `<h4>${node.label ?? node.id}</h4><p>type: ${node.type ?? '—'}</p>`;
   return el;
@@ -151,7 +151,7 @@ function loadBasic() {
       nodes: { showLabels: true, defaultSize: 30 },
     },
     onMouse: (type, item) => {
-      if (type === 'nodeClick') setStatus(`clicked: ${(item as RevisNodeDefinition)?.id ?? ''}`);
+      if (type === 'nodeClick') setStatus(`clicked: ${(item as NetiPlotNodeDefinition)?.id ?? ''}`);
       if (type === 'backgroundClick') setStatus('');
     },
     hover: { delay: 400, width: 160, height: 80, nodeRenderer: tooltipRenderer },
@@ -198,7 +198,7 @@ function loadOptions() {
     options: buildOptions(),
     hover: { delay: 400, width: 160, height: 80, nodeRenderer: tooltipRenderer },
     onMouse: (type, item) => {
-      if (type === 'nodeClick') setStatus(`clicked: ${(item as RevisNodeDefinition)?.id ?? ''}`);
+      if (type === 'nodeClick') setStatus(`clicked: ${(item as NetiPlotNodeDefinition)?.id ?? ''}`);
     },
   });
 
@@ -233,7 +233,7 @@ function loadDrawing() {
     nodeDrawingFunction: makeNodeDrawer(styleEl.value),
     hover: { delay: 400, width: 160, height: 80, nodeRenderer: tooltipRenderer },
     onMouse: (type, item) => {
-      if (type === 'nodeClick') setStatus(`${(item as RevisNodeDefinition)?.type ?? 'node'} clicked`);
+      if (type === 'nodeClick') setStatus(`${(item as NetiPlotNodeDefinition)?.type ?? 'node'} clicked`);
     },
   });
 

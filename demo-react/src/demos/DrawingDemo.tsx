@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { RevisNetwork } from '@jonmodell/netiplot';
-import type { RevisShapeDefinition } from '@jonmodell/netiplot';
+import { NetiPlotReact } from '@jonmodell/netiplot';
+import type { NetiPlotShapeDefinition } from '@jonmodell/netiplot';
 import {
   iconMap,
   nodeDrawing,
@@ -30,7 +30,7 @@ const edgeRenderer = () => (
 
 export default function DrawingDemo() {
   const [editShapes, setEditShapes] = useState(false);
-  const shapesRef = useRef<RevisShapeDefinition[]>([...initialShapes]);
+  const shapesRef = useRef<NetiPlotShapeDefinition[]>([...initialShapes]);
   const [, forceRender] = useState(0);
   const [editingText, setEditingText] = useState<{ id: string; text: string } | null>(null);
 
@@ -119,7 +119,7 @@ export default function DrawingDemo() {
         Double-click a text shape to edit its content.
       </div>
       <div className="network-container" style={{ position: 'relative' }}>
-        <RevisNetwork
+        <NetiPlotReact
           graph={data}
           shapes={shapesRef.current}
           onMouse={onMouse}

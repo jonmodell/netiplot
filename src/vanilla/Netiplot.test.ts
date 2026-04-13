@@ -1,5 +1,5 @@
 import { Netiplot } from './Netiplot';
-import type { RevisGraph, RevisLayouter } from '../types';
+import type { NetiPlotGraph, NetiPlotLayouter } from '../types';
 
 // ── ResizeObserver mock ───────────────────────────────────────────────────────
 
@@ -53,9 +53,9 @@ beforeEach(() => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const mockLayouter: RevisLayouter = jest.fn(() => undefined);
+const mockLayouter: NetiPlotLayouter = jest.fn(() => undefined);
 
-const graph: RevisGraph = {
+const graph: NetiPlotGraph = {
   nodes: [{ id: 'a', x: 0, y: 0 }, { id: 'b', x: 100, y: 100 }],
   edges: [{ id: 'e1', from: 'a', to: 'b' }],
 };

@@ -4,19 +4,19 @@ import { NetiplotEngine } from '../core/NetiplotEngine';
 import { EventManager } from '../core/EventManager';
 import { RenderLoop, RenderState } from '../core/RenderLoop';
 import type {
-  RevisGraph,
-  RevisShapeDefinition,
-  RevisOptions,
-  RevisLayouter,
+  NetiPlotGraph,
+  NetiPlotShapeDefinition,
+  NetiPlotOptions,
+  NetiPlotLayouter,
   ShouldRunLayouter,
-  RevisMouseHandler,
+  NetiPlotMouseHandler,
   NodeDrawingFunction,
   ShapeDrawingFunction,
-  RevisImageMap,
+  NetiPlotImageMap,
   PanScaleState,
   HoverState,
-  RevisNodeDefinition,
-  RevisEdgeDefinition,
+  NetiPlotNodeDefinition,
+  NetiPlotEdgeDefinition,
 } from '../types';
 
 // ── Vanilla hover config ───────────────────────────────────────────────────────
@@ -27,9 +27,9 @@ import type {
  */
 export interface NetiplotHoverConfig {
   /** Return an HTMLElement or HTML string to display when hovering a node, or null to suppress. */
-  nodeRenderer?: (node: RevisNodeDefinition) => HTMLElement | string | null;
+  nodeRenderer?: (node: NetiPlotNodeDefinition) => HTMLElement | string | null;
   /** Return an HTMLElement or HTML string to display when hovering an edge, or null to suppress. */
-  edgeRenderer?: (edge: RevisEdgeDefinition) => HTMLElement | string | null;
+  edgeRenderer?: (edge: NetiPlotEdgeDefinition) => HTMLElement | string | null;
   /** Hover delay in milliseconds (default: 750). */
   delay?: number;
   /** Tooltip width in px used for positioning (default: 200). */
@@ -42,23 +42,23 @@ export interface NetiplotHoverConfig {
 
 export interface NetiplotConfig {
   /** Graph data. */
-  graph: RevisGraph;
+  graph: NetiPlotGraph;
   /** Library options (nodes, edges, camera, layout, interaction, etc.). */
-  options?: RevisOptions;
+  options?: NetiPlotOptions;
   /** Background shapes. */
-  shapes?: RevisShapeDefinition[];
+  shapes?: NetiPlotShapeDefinition[];
   /** Layout algorithm (defaults to built-in hierarchical layout). */
-  layouter?: RevisLayouter;
+  layouter?: NetiPlotLayouter;
   /** Predicate controlling whether layout re-runs on graph change. */
   shouldRunLayouter?: ShouldRunLayouter;
   /** Mouse event callback. */
-  onMouse?: RevisMouseHandler;
+  onMouse?: NetiPlotMouseHandler;
   /** Custom node drawing function. */
   nodeDrawingFunction?: NodeDrawingFunction;
   /** Custom shape drawing function. */
   shapeDrawingFunction?: ShapeDrawingFunction;
   /** Map of image IDs to image elements. */
-  images?: RevisImageMap;
+  images?: NetiPlotImageMap;
   /** Stable identifier for this instance. */
   identifier?: string;
   /** Vanilla hover tooltip configuration (callback-based, no React). */
@@ -68,7 +68,7 @@ export interface NetiplotConfig {
 // ── Netiplot ──────────────────────────────────────────────────────────────────
 
 /**
- * Vanilla JS network visualization. Drop-in alternative to <RevisNetwork> for
+ * Vanilla JS network visualization. Drop-in alternative to <NetiPlotReact> for
  * non-React environments.
  *
  * Usage:
@@ -131,7 +131,7 @@ export class Netiplot {
     container.appendChild(this.tooltip);
 
     // ── Build merged options so hover delay/size pass through to the engine
-    const mergedOptions: RevisOptions = deepMerge({}, config.options || {}, {
+    const mergedOptions: NetiPlotOptions = deepMerge({}, config.options || {}, {
       hover: {
         delay: config.hover?.delay,
         width: config.hover?.width,
@@ -237,7 +237,7 @@ export class Netiplot {
       return;
     }
 
-    const content = renderer(hover.item as RevisNodeDefinition & RevisEdgeDefinition);
+    const content = renderer(hover.item as NetiPlotNodeDefinition & NetiPlotEdgeDefinition);
     if (!content) {
       this.tooltip.style.display = 'none';
       return;
@@ -261,13 +261,13 @@ export class Netiplot {
   // ── Public API ────────────────────────────────────────────────────────────
 
   /** Replace the graph data. Triggers layout if nodes/edges changed. */
-  setGraph(graph: RevisGraph, shapes?: RevisShapeDefinition[]): this {
+  setGraph(graph: NetiPlotGraph, shapes?: NetiPlotShapeDefinition[]): this {
     this.engine.setGraph(graph, shapes);
     return this;
   }
 
   /** Update options. Triggers layout if layoutOptions changed. */
-  setOptions(options: RevisOptions): this {
+  setOptions(options: NetiPlotOptions): this {
     this.engine.setOptions(options);
     return this;
   }

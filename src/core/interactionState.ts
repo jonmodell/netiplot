@@ -1,4 +1,4 @@
-import { InteractionState, RevisNodeDefinition, RevisShapeDefinition } from '../types';
+import { InteractionState, NetiPlotNodeDefinition, NetiPlotShapeDefinition } from '../types';
 
 export const initialInteraction: InteractionState = {
   action: null,
@@ -9,7 +9,7 @@ export const initialInteraction: InteractionState = {
 };
 
 export type InteractionAction =
-  | { type: 'addToDrag'; payload: RevisNodeDefinition[] }
+  | { type: 'addToDrag'; payload: NetiPlotNodeDefinition[] }
   | { type: 'edgeDown' }
   | { type: 'endLayout' }
   | { type: 'handleDown'; payload: string }
@@ -20,7 +20,7 @@ export type InteractionAction =
   | { type: 'releaseDrag' }
   | { type: 'reset' }
   | { type: 'runLayout' }
-  | { type: 'shapeDown'; payload: RevisShapeDefinition }
+  | { type: 'shapeDown'; payload: NetiPlotShapeDefinition }
   | { type: 'shapeMove' }
   | { type: 'shapeUp' };
 
