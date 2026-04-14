@@ -1,5 +1,6 @@
 import { deepMerge } from '../util';
 import { defaultLayout } from '../layout';
+import { injectNetiPlotStyles } from '../injectStyles';
 import { NetiPlotEngine } from '../core/NetiPlotEngine';
 import { EventManager } from '../core/EventManager';
 import { RenderLoop, RenderState } from '../core/RenderLoop';
@@ -100,6 +101,7 @@ export class NetiPlot {
   private screenReady = false;
 
   constructor(container: HTMLElement, config: NetiPlotConfig) {
+    injectNetiPlotStyles();
     this.hoverConfig = config.hover;
 
     // Ensure container can contain absolutely-positioned children.

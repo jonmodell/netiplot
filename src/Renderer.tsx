@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import './styles.css';
+import { injectNetiPlotStyles } from './injectStyles';
 import { ZoomControls, HoverPopup } from './components';
+
+// Inject styles at module load time so consumers don't need to import the CSS.
+// The function is idempotent and no-ops on the server (SSR-safe).
+injectNetiPlotStyles();
 import { ActionLayer, EditLayer } from './renderingLayers';
 import { RendererProps } from './types';
 import { RenderLoop, RenderState } from './core/RenderLoop';
