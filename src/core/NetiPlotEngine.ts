@@ -306,16 +306,25 @@ export class NetiPlotEngine {
         case 'move': {
           const { pos, e } = payload;
           if (iSt.action === 'drag' && iSt.draggedNodes.length > 0) {
-            const lastNode = iSt.draggedNodes[iSt.draggedNodes.length - 1];
-            const delta = {
-              x: pos.x - Number(lastNode.x),
-              y: pos.y - Number(lastNode.y),
-            };
-            iSt.draggedNodes.forEach((n: NetiPlotNodeDefinition) => {
-              n.x = (n.x || 0) + delta.x;
-              n.y = (n.y || 0) + delta.y;
-              n.fixed = true;
-            });
+            const lastDef = iSt.draggedNodes[iSt.draggedNodes.length - 1];
+            const lastNetNode = this.nodes.get(lastDef.id);
+            if (lastNetNode) {
+              const delta = {
+                x: pos.x - lastNetNode.x,
+                y: pos.y - lastNetNode.y,
+              };
+              iSt.draggedNodes.forEach((def: NetiPlotNodeDefinition) => {
+                const netNode = this.nodes.get(def.id);
+                if (netNode) {
+                  netNode.x += delta.x;
+                  netNode.y += delta.y;
+                  netNode.fixed = true;
+                  def.x = netNode.x;
+                  def.y = netNode.y;
+                  def.fixed = true;
+                }
+              });
+            }
             const sp = getScreenEdgePan(this.getLiveScreen(), e);
             this.dispatchInteraction({ type: 'mouseMoved' });
             this.dispatchPanScale({ type: 'framePan', payload: sp });
@@ -530,9 +539,14 @@ export class NetiPlotEngine {
   private edgePan(): void {
     const { panPerFrame } = this.panScale;
     if (!panPerFrame) return;
-    this.interaction.draggedNodes.forEach((n: NetiPlotNodeDefinition) => {
-      n.x = (n.x || 0) - panPerFrame.x;
-      n.y = (n.y || 0) - panPerFrame.y;
+    this.interaction.draggedNodes.forEach((def: NetiPlotNodeDefinition) => {
+      const netNode = this.nodes.get(def.id);
+      if (netNode) {
+        netNode.x -= panPerFrame.x;
+        netNode.y -= panPerFrame.y;
+        def.x = netNode.x;
+        def.y = netNode.y;
+      }
     });
     this.dispatchPanScale({ type: 'edgePan' });
   }

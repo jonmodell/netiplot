@@ -276,12 +276,16 @@ function loadLarge() {
   destroyCurrent();
   const countEl = document.getElementById('large-count') as HTMLInputElement;
   const labelEl = document.getElementById('large-count-label')!;
+  const borderColors: Record<string, string> = {
+    server: '#3b82f6', client: '#8b5cf6', router: '#10b981', switch: '#f59e0b', gateway: '#ef4444',
+  };
   const generate = () => {
     const count = Number(countEl.value);
     labelEl.textContent = String(count);
     const graph = randomGraph(count);
+    graph.nodes.forEach(n => { n.style = { border: borderColors[n.type ?? ''] ?? '#888', lineWidth: 3 }; });
     if (net) { net.setGraph(graph); }
-    else { net = new NetiPlot(container, { graph, options: { interaction: { allowGraphInteraction: true }, nodes: { showLabels: false, defaultSize: 18 }, edges: { arrowheads: false } }, onMouse: () => {} }); }
+    else { net = new NetiPlot(container, { graph, options: { interaction: { allowGraphInteraction: true }, nodes: { showLabels: false, defaultSize: 70,  }, edges: { arrowheads: false } }, onMouse: () => {} }); }
     setStatus(`${count} nodes, ${graph.edges.length} edges`);
   };
   countEl.oninput = () => { labelEl.textContent = countEl.value; };
