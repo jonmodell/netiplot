@@ -31,7 +31,8 @@
       "types": "./lib/vanilla.d.ts",
       "import": "./lib/vanilla.esm.js",
       "require": "./lib/vanilla.js"
-    }
+    },
+    "./styles": "./lib/netiplot.css"
   },
   "files": [
     "lib",
